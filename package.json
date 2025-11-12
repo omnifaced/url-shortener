@@ -1,0 +1,39 @@
+{
+	"name": "url-shortener",
+	"description": "Service for shortening long links",
+	"version": "1.0.0",
+	"author": "omnifaced",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"format": "biome format ./src --write --config-path ./biome.json",
+		"lint": "biome lint ./src --write --config-path ./biome.json",
+		"type:check": "tsc --project ./tsconfig.json",
+		"start": "pnpm type:check && tsx --env-file=.env ./src/index.ts",
+		"dev": "pnpm type:check && tsx watch --env-file=.env ./src/index.ts",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.4",
+		"@types/node": "^24.10.0",
+		"typescript": "^5.9.3",
+		"drizzle-kit": "^0.31.6",
+		"tsx": "^4.20.6"
+	},
+	"dependencies": {
+		"@hono/node-server": "^1.19.6",
+		"@hono/swagger-ui": "^0.5.2",
+		"@hono/zod-openapi": "^1.1.4",
+		"@hono/zod-validator": "^0.7.4",
+		"consola": "^3.4.2",
+		"cron": "^4.3.4",
+		"drizzle-orm": "^0.44.7",
+		"hono": "^4.10.4",
+		"ioredis": "^5.8.2",
+		"postgres": "^3.4.7",
+		"zod": "^4.1.12"
+	}
+}
