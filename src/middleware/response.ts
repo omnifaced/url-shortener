@@ -16,30 +16,20 @@ export async function responseMiddleware(c: Context, next: Next) {
 	const clonedResponse = c.res.clone()
 	const originalJson = await clonedResponse.json()
 
-	if ('error' in originalJson && !('success' in originalJson)) {
-		c.res = new Response(
-			JSON.stringify({
-				success: false,
-				...originalJson,
-			}),
-			{
-				status: c.res.status,
-				headers: c.res.headers,
-			}
-		)
+	if ('success' in originalJson) {
 		return
 	}
 
-	if (!('success' in originalJson) && !('error' in originalJson)) {
-		c.res = new Response(
-			JSON.stringify({
-				success: true,
-				data: originalJson,
-			}),
-			{
-				status: c.res.status,
-				headers: c.res.headers,
-			}
-		)
-	}
+	const isErrorResponse = 'error' in originalJson
+
+	c.res = new Response(
+		JSON.stringify({
+			success: !isErrorResponse,
+			...(isErrorResponse ? originalJson : { data: originalJson }),
+		}),
+		{
+			status: c.res.status,
+			headers: c.res.headers,
+		}
+	)
 }

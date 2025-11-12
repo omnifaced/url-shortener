@@ -2,10 +2,12 @@ import { analyticsRouter, authRouter, linksRouter, redirectRouter } from './rout
 import { cleanupExpiredLinks, cleanupExpiredTokens, logger, redis } from './lib'
 import { traceMiddleware, structuredLogger } from './middleware'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { HTTPException } from 'hono/http-exception'
+import { existsSync, readFileSync } from 'node:fs'
 import { OpenAPIHono } from '@hono/zod-openapi'
+import { createSecureServer } from 'node:http2'
 import { swaggerUI } from '@hono/swagger-ui'
 import { serve } from '@hono/node-server'
-import { createServer } from 'node:http2'
 import { compress } from 'hono/compress'
 import { landingPage } from './views'
 import { cors } from 'hono/cors'
@@ -58,17 +60,33 @@ app.route('/api/analytics', analyticsRouter)
 app.route('/', redirectRouter)
 
 app.onError((error, c) => {
-	logger.error('Unhandled error', {
-		error: error.message,
-		stack: error.stack,
-		path: c.req.path,
-		method: c.req.method,
-	})
+	if (error instanceof HTTPException) {
+		const errorObject: Record<string, unknown> = {
+			message: error.message,
+		}
+
+		if (error.cause) {
+			errorObject.details = error.cause
+		}
+
+		return c.json(
+			{
+				success: false,
+				error: {
+					message: error.message,
+					...(error?.cause ? { details: error.cause } : {}),
+				},
+			},
+			error.status
+		)
+	}
 
 	return c.json(
 		{
 			success: false,
-			error: 'Internal server error',
+			error: {
+				message: 'Internal server error',
+			},
 		},
 		500
 	)
@@ -76,13 +94,32 @@ app.onError((error, c) => {
 
 const port = Number(process.env.PORT) || 3000
 
-serve({
-	fetch: app.fetch,
-	createServer,
-	port,
-})
+const certPath = './certificates/cert.pem'
+const keyPath = './certificates/key.pem'
 
-logger.success(`Server is running on port ${port}`)
+const hasCertificates = existsSync(certPath) && existsSync(keyPath)
+
+if (hasCertificates) {
+	serve({
+		fetch: app.fetch,
+		createServer: createSecureServer,
+		port,
+		serverOptions: {
+			key: readFileSync(keyPath),
+			cert: readFileSync(certPath),
+			allowHTTP1: true,
+		},
+	})
+
+	logger.success(`Server is running on https://localhost:${port}`)
+} else {
+	serve({
+		fetch: app.fetch,
+		port,
+	})
+
+	logger.success(`Server is running on http://localhost:${port}`)
+}
 
 const cleanupJob = new CronJob('0 * * * *', async () => {
 	logger.start('Running cleanup job...')

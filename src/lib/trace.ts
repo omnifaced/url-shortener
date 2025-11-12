@@ -1,6 +1,5 @@
-import * as crypto from 'node:crypto'
-
 import { AsyncLocalStorage } from 'node:async_hooks'
+import { randomUUID } from 'node:crypto'
 
 interface TraceContext {
 	traceId: string
@@ -9,7 +8,7 @@ interface TraceContext {
 export const traceStorage = new AsyncLocalStorage<TraceContext>()
 
 export function generateTraceId(): string {
-	return crypto.randomUUID()
+	return randomUUID()
 }
 
 export function getTraceId(): string | undefined {

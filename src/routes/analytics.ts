@@ -1,5 +1,6 @@
 import { authMiddleware, responseMiddleware } from '../middleware'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { HTTPException } from 'hono/http-exception'
 import { eq, and, count, desc, sql } from 'drizzle-orm'
 import { validationErrorWrapperHook } from '../hooks'
 import { linkIdParamSchema } from '../validators'
@@ -139,7 +140,7 @@ analyticsRouter.openapi(linkStatsRoute, async (c) => {
 
 	if (!link) {
 		logger.warn('Link stats requested for non-existent link', { linkId: id, userId: auth.userId })
-		return c.json({ error: 'Link not found' }, 404)
+		throw new HTTPException(404, { message: 'Link not found' })
 	}
 
 	const [totalClicks] = await db.select({ count: count() }).from(clicks).where(eq(clicks.linkId, id))

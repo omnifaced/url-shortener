@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { HTTPException } from 'hono/http-exception'
 import { validationErrorWrapperHook } from '../hooks'
 import { shortCodeParamSchema } from '../validators'
 import { responseMiddleware } from '../middleware'
@@ -58,13 +59,13 @@ redirectRouter.openapi(redirectRoute, async (c) => {
 
 		if (!linkData.isActive) {
 			logger.warn('Redirect attempt to inactive link', { shortCode, linkId: linkData.id })
-			return c.json({ error: 'Link is inactive' }, 410)
+			throw new HTTPException(410, { message: 'Link is inactive' })
 		}
 
 		if (linkData.expiresAt && new Date(linkData.expiresAt) < new Date()) {
 			await redis.del(cacheKey)
 			logger.warn('Redirect attempt to expired link', { shortCode, linkId: linkData.id })
-			return c.json({ error: 'Link has expired' }, 410)
+			throw new HTTPException(410, { message: 'Link has expired' })
 		}
 
 		const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || null
@@ -87,17 +88,17 @@ redirectRouter.openapi(redirectRoute, async (c) => {
 
 	if (!link) {
 		logger.warn('Redirect attempt to non-existent link', { shortCode })
-		return c.json({ error: 'Link not found' }, 404)
+		throw new HTTPException(404, { message: 'Link not found' })
 	}
 
 	if (!link.isActive) {
 		logger.warn('Redirect attempt to inactive link', { shortCode, linkId: link.id })
-		return c.json({ error: 'Link is inactive' }, 410)
+		throw new HTTPException(410, { message: 'Link is inactive' })
 	}
 
 	if (link.expiresAt && new Date(link.expiresAt) < new Date()) {
 		logger.warn('Redirect attempt to expired link', { shortCode, linkId: link.id })
-		return c.json({ error: 'Link has expired' }, 410)
+		throw new HTTPException(410, { message: 'Link has expired' })
 	}
 
 	await redis.setex(

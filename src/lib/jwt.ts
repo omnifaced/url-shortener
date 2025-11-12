@@ -1,5 +1,4 @@
-import * as crypto from 'node:crypto'
-
+import { randomBytes } from 'node:crypto'
 import { sign, verify } from 'hono/jwt'
 
 const JWT_SECRET = process.env.JWT_SECRET!
@@ -28,7 +27,7 @@ export async function generateAccessToken(userId: number, username: string): Pro
 }
 
 export function generateRefreshToken(): string {
-	return crypto.randomBytes(64).toString('hex')
+	return randomBytes(64).toString('hex')
 }
 
 export function getRefreshTokenExpiry(): Date {

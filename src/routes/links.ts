@@ -1,6 +1,7 @@
 import { createLinkSchema, listLinksQuerySchema, linkIdParamSchema } from '../validators'
 import { authMiddleware, responseMiddleware } from '../middleware'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { HTTPException } from 'hono/http-exception'
 import { validationErrorWrapperHook } from '../hooks'
 import { generateShortCode, logger } from '../lib'
 import { eq, and, desc, count } from 'drizzle-orm'
@@ -206,7 +207,7 @@ linksRouter.openapi(createLinkRoute, async (c) => {
 
 	if (attempts === maxAttempts) {
 		logger.error('Failed to generate unique short code', { userId: auth.userId, attempts })
-		return c.json({ error: 'Failed to generate unique short code' }, 500)
+		throw new HTTPException(500, { message: 'Failed to generate unique short code' })
 	}
 
 	const [newLink] = await db
@@ -293,7 +294,7 @@ linksRouter.openapi(getLinkRoute, async (c) => {
 
 	if (!link) {
 		logger.warn('Link get requested for non-existent link', { linkId: id, userId: auth.userId })
-		return c.json({ error: 'Link not found' }, 404)
+		throw new HTTPException(404, { message: 'Link not found' })
 	}
 
 	logger.info('Link details retrieved', { linkId: link.id, userId: auth.userId, shortCode: link.shortCode })
@@ -321,7 +322,7 @@ linksRouter.openapi(deleteLinkRoute, async (c) => {
 
 	if (deleted.length === 0) {
 		logger.warn('Link delete requested for non-existent link', { linkId: id, userId: auth.userId })
-		return c.json({ error: 'Link not found' }, 404)
+		throw new HTTPException(404, { message: 'Link not found' })
 	}
 
 	logger.success('Link deleted', { linkId: deleted[0].id, userId: auth.userId, shortCode: deleted[0].shortCode })

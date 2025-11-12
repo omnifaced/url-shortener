@@ -11,7 +11,7 @@ export async function authMiddleware(c: Context, next: Next) {
 	const authHeader = c.req.header('Authorization')
 
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		throw new HTTPException(401, { message: 'Unauthorized' })
+		throw new HTTPException(401, { message: 'Unauthorized', cause: { message: 'Missing or invalid Authorization header' } })
 	}
 
 	const token = authHeader.substring(7)
@@ -21,14 +21,14 @@ export async function authMiddleware(c: Context, next: Next) {
 
 		if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
 			logger.warn('Expired token used', { userId: payload.userId })
-			throw new HTTPException(401, { message: 'Token expired' })
+			throw new HTTPException(401, { message: 'Unauthorized', cause: { message: 'Token expired' } })
 		}
 
 		const isBlacklisted = await isTokenBlacklisted(token)
 
 		if (isBlacklisted) {
 			logger.warn('Blacklisted token used', { userId: payload.userId })
-			throw new HTTPException(401, { message: 'Token has been revoked' })
+			throw new HTTPException(401, { message: 'Unauthorized', cause: { message: 'Token has been revoked' } })
 		}
 
 		c.set('auth', {
@@ -43,6 +43,6 @@ export async function authMiddleware(c: Context, next: Next) {
 		}
 
 		logger.error('Token verification failed', { error: error instanceof Error ? error.message : String(error) })
-		throw new HTTPException(401, { message: 'Invalid token' })
+		throw new HTTPException(401, { message: 'Unauthorized', cause: { message: 'Invalid token' } })
 	}
 }

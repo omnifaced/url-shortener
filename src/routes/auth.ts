@@ -8,16 +8,17 @@ import {
 	addTokenToBlacklist,
 	addUserTokensToBlacklist,
 	trackUserToken,
+	logger,
 } from '../lib'
 
 import { registerSchema, loginSchema, refreshSchema } from '../validators'
 import { authMiddleware, responseMiddleware } from '../middleware'
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+import { HTTPException } from 'hono/http-exception'
 import { validationErrorWrapperHook } from '../hooks'
 import { users, refreshTokens } from '../db/schema'
 import type { Variables } from '../types'
 import { eq, and } from 'drizzle-orm'
-import { logger } from '../lib'
 import { db } from '../db'
 
 const authResponseSchema = z.object({
@@ -120,7 +121,7 @@ authRouter.openapi(registerRoute, async (c) => {
 
 	if (existingUser.length > 0) {
 		logger.warn('Registration attempt with existing username', { username })
-		return c.json({ error: 'Username already exists' }, 400)
+		throw new HTTPException(400, { message: 'Username already exists' })
 	}
 
 	const hashedPassword = await hashPassword(password)
@@ -173,14 +174,14 @@ authRouter.openapi(loginRoute, async (c) => {
 
 	if (!user) {
 		logger.warn('Login attempt with non-existent username', { username })
-		return c.json({ error: 'Invalid credentials' }, 401)
+		throw new HTTPException(401, { message: 'Invalid credentials' })
 	}
 
 	const isValidPassword = await verifyPassword(password, user.password)
 
 	if (!isValidPassword) {
 		logger.warn('Login attempt with invalid password', { userId: user.id, username })
-		return c.json({ error: 'Invalid credentials' }, 401)
+		throw new HTTPException(401, { message: 'Invalid credentials' })
 	}
 
 	const accessToken = await generateAccessToken(user.id, user.username)
@@ -315,18 +316,18 @@ authRouter.openapi(refreshRoute, async (c) => {
 		.limit(1)
 
 	if (!tokenRecord) {
-		return c.json({ error: 'Invalid refresh token' }, 401)
+		throw new HTTPException(401, { message: 'Invalid refresh token' })
 	}
 
 	if (new Date(tokenRecord.expiresAt) < new Date()) {
 		await db.delete(refreshTokens).where(eq(refreshTokens.id, tokenRecord.id))
-		return c.json({ error: 'Refresh token expired' }, 401)
+		throw new HTTPException(401, { message: 'Refresh token expired' })
 	}
 
 	const [user] = await db.select().from(users).where(eq(users.id, tokenRecord.userId)).limit(1)
 
 	if (!user) {
-		return c.json({ error: 'User not found' }, 401)
+		throw new HTTPException(401, { message: 'User not found' })
 	}
 
 	const accessToken = await generateAccessToken(user.id, user.username)
