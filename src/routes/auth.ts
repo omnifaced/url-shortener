@@ -1,112 +1,26 @@
 import {
-	hashPassword,
-	verifyPassword,
-	generateAccessToken,
-	generateRefreshToken,
-	getRefreshTokenExpiry,
-	getAccessTokenExpiry,
 	addTokenToBlacklist,
 	addUserTokensToBlacklist,
+	generateAccessToken,
+	generateRefreshToken,
+	getAccessTokenExpiry,
+	getRefreshTokenExpiry,
+	hashPassword,
 	trackUserToken,
+	verifyPassword,
 	logger,
 } from '../lib'
 
-import { registerSchema, loginSchema, refreshSchema } from '../validators'
+import { loginRoute, logoutAllRoute, logoutRoute, refreshRoute, registerRoute } from '../openapi'
+import type { RouteConfigToTypedResponse } from '@hono/zod-openapi'
 import { authMiddleware, responseMiddleware } from '../middleware'
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { HTTPException } from 'hono/http-exception'
 import { validationErrorWrapperHook } from '../hooks'
+import { HTTPException } from 'hono/http-exception'
 import { users, refreshTokens } from '../db/schema'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import type { Variables } from '../types'
 import { eq, and } from 'drizzle-orm'
 import { db } from '../db'
-
-const authResponseSchema = z.object({
-	accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
-	refreshToken: z.string().openapi({ example: 'abc123...' }),
-	user: z.object({
-		id: z.number().openapi({ example: 1 }),
-		username: z.string().openapi({ example: 'johndoe' }),
-	}),
-})
-
-const refreshResponseSchema = z.object({
-	accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
-})
-
-const messageResponseSchema = z.object({
-	message: z.string(),
-})
-
-const errorResponseSchema = z.object({
-	error: z.string(),
-})
-
-const registerRoute = createRoute({
-	method: 'post',
-	path: '/register',
-	tags: ['Authentication'],
-	request: {
-		body: {
-			content: {
-				'application/json': {
-					schema: registerSchema.openapi('RegisterRequest'),
-				},
-			},
-		},
-	},
-	responses: {
-		201: {
-			content: {
-				'application/json': {
-					schema: authResponseSchema,
-				},
-			},
-			description: 'User registered successfully',
-		},
-		400: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Bad request - username already exists',
-		},
-	},
-})
-
-const loginRoute = createRoute({
-	method: 'post',
-	path: '/login',
-	tags: ['Authentication'],
-	request: {
-		body: {
-			content: {
-				'application/json': {
-					schema: loginSchema.openapi('LoginRequest'),
-				},
-			},
-		},
-	},
-	responses: {
-		200: {
-			content: {
-				'application/json': {
-					schema: authResponseSchema,
-				},
-			},
-			description: 'Login successful',
-		},
-		401: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Invalid credentials',
-		},
-	},
-})
 
 const authRouter = new OpenAPIHono<{ Variables: Variables }>({
 	defaultHook: validationErrorWrapperHook,
@@ -126,48 +40,54 @@ authRouter.openapi(registerRoute, async (c) => {
 
 	const hashedPassword = await hashPassword(password)
 
-	const [newUser] = await db
-		.insert(users)
-		.values({
-			username,
-			password: hashedPassword,
-		})
-		.returning()
+	const result = await db.transaction(async (tx) => {
+		const [newUser] = await tx
+			.insert(users)
+			.values({
+				username,
+				password: hashedPassword,
+			})
+			.returning()
 
-	const accessToken = await generateAccessToken(newUser.id, newUser.username)
-	const refreshTokenValue = generateRefreshToken()
+		const accessToken = await generateAccessToken(newUser.id, newUser.username)
+		const refreshTokenValue = generateRefreshToken()
 
-	const userAgent = c.req.header('user-agent') || null
-	const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || null
+		const userAgent = c.req.header('user-agent') || null
+		const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || null
 
-	await Promise.all([
-		db.insert(refreshTokens).values({
+		await tx.insert(refreshTokens).values({
 			userId: newUser.id,
 			token: refreshTokenValue,
 			userAgent,
 			ip,
 			expiresAt: getRefreshTokenExpiry(),
-		}),
-		trackUserToken(newUser.id, accessToken),
-	])
+		})
 
-	logger.success('User registered', { userId: newUser.id, username: newUser.username })
+		await trackUserToken(newUser.id, accessToken)
+
+		return {
+			newUser,
+			accessToken,
+			refreshTokenValue,
+		}
+	})
+
+	logger.success('User registered', { userId: result.newUser.id, username: result.newUser.username })
 
 	return c.json(
 		{
-			accessToken,
-			refreshToken: refreshTokenValue,
+			accessToken: result.accessToken,
+			refreshToken: result.refreshTokenValue,
 			user: {
-				id: newUser.id,
-				username: newUser.username,
+				id: result.newUser.id,
+				username: result.newUser.username,
 			},
 		},
 		201
 	)
 })
 
-// @ts-expect-error - OpenAPI type inference issue
-authRouter.openapi(loginRoute, async (c) => {
+authRouter.openapi(loginRoute, async (c): Promise<RouteConfigToTypedResponse<typeof loginRoute>> => {
 	const { username, password } = c.req.valid('json')
 
 	const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1)
@@ -184,159 +104,86 @@ authRouter.openapi(loginRoute, async (c) => {
 		throw new HTTPException(401, { message: 'Invalid credentials' })
 	}
 
-	const accessToken = await generateAccessToken(user.id, user.username)
-	const refreshTokenValue = generateRefreshToken()
+	const result = await db.transaction(async (tx) => {
+		const accessToken = await generateAccessToken(user.id, user.username)
+		const refreshTokenValue = generateRefreshToken()
 
-	const userAgent = c.req.header('user-agent') || null
-	const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || null
+		const userAgent = c.req.header('user-agent') || null
+		const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || null
 
-	await Promise.all([
-		db.insert(refreshTokens).values({
+		await tx.insert(refreshTokens).values({
 			userId: user.id,
 			token: refreshTokenValue,
 			userAgent,
 			ip,
 			expiresAt: getRefreshTokenExpiry(),
-		}),
-		trackUserToken(user.id, accessToken),
-	])
+		})
 
-	logger.success('User logged in', { userId: user.id, username: user.username, ip })
+		await trackUserToken(user.id, accessToken)
 
-	return c.json({
-		accessToken,
-		refreshToken: refreshTokenValue,
-		user: {
-			id: user.id,
-			username: user.username,
-		},
+		return {
+			accessToken,
+			refreshTokenValue,
+		}
 	})
+
+	logger.success('User logged in', {
+		userId: user.id,
+		username: user.username,
+		ip: c.req.header('x-forwarded-for') || c.req.header('x-real-ip'),
+	})
+
+	return c.json(
+		{
+			accessToken: result.accessToken,
+			refreshToken: result.refreshTokenValue,
+			user: {
+				id: user.id,
+				username: user.username,
+			},
+		},
+		200
+	)
 })
 
-const refreshRoute = createRoute({
-	method: 'post',
-	path: '/refresh',
-	tags: ['Authentication'],
-	request: {
-		body: {
-			content: {
-				'application/json': {
-					schema: refreshSchema.openapi('RefreshRequest'),
-				},
-			},
-		},
-	},
-	responses: {
-		200: {
-			content: {
-				'application/json': {
-					schema: refreshResponseSchema,
-				},
-			},
-			description: 'Token refreshed successfully',
-		},
-		401: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Invalid or expired refresh token',
-		},
-	},
-})
-
-const logoutRoute = createRoute({
-	method: 'post',
-	path: '/logout',
-	tags: ['Authentication'],
-	security: [{ Bearer: [] }],
-	request: {
-		body: {
-			content: {
-				'application/json': {
-					schema: refreshSchema.openapi('LogoutRequest'),
-				},
-			},
-		},
-	},
-	responses: {
-		200: {
-			content: {
-				'application/json': {
-					schema: messageResponseSchema,
-				},
-			},
-			description: 'Logged out successfully',
-		},
-		401: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Unauthorized',
-		},
-	},
-})
-
-const logoutAllRoute = createRoute({
-	method: 'post',
-	path: '/logout-all',
-	tags: ['Authentication'],
-	security: [{ Bearer: [] }],
-	responses: {
-		200: {
-			content: {
-				'application/json': {
-					schema: messageResponseSchema,
-				},
-			},
-			description: 'All sessions terminated successfully',
-		},
-		401: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Unauthorized',
-		},
-	},
-})
-
-// @ts-expect-error - OpenAPI type inference issue
-authRouter.openapi(refreshRoute, async (c) => {
+authRouter.openapi(refreshRoute, async (c): Promise<RouteConfigToTypedResponse<typeof refreshRoute>> => {
 	const { refreshToken: refreshTokenValue } = c.req.valid('json')
 
-	const [tokenRecord] = await db
-		.select()
-		.from(refreshTokens)
-		.where(eq(refreshTokens.token, refreshTokenValue))
-		.limit(1)
+	const accessToken = await db.transaction(async (tx) => {
+		const [tokenRecord] = await tx
+			.select()
+			.from(refreshTokens)
+			.where(eq(refreshTokens.token, refreshTokenValue))
+			.limit(1)
 
-	if (!tokenRecord) {
-		throw new HTTPException(401, { message: 'Invalid refresh token' })
-	}
+		if (!tokenRecord) {
+			throw new HTTPException(401, { message: 'Invalid refresh token' })
+		}
 
-	if (new Date(tokenRecord.expiresAt) < new Date()) {
-		await db.delete(refreshTokens).where(eq(refreshTokens.id, tokenRecord.id))
-		throw new HTTPException(401, { message: 'Refresh token expired' })
-	}
+		if (new Date(tokenRecord.expiresAt) < new Date()) {
+			await tx.delete(refreshTokens).where(eq(refreshTokens.id, tokenRecord.id))
+			throw new HTTPException(401, { message: 'Refresh token expired' })
+		}
 
-	const [user] = await db.select().from(users).where(eq(users.id, tokenRecord.userId)).limit(1)
+		const [user] = await tx.select().from(users).where(eq(users.id, tokenRecord.userId)).limit(1)
 
-	if (!user) {
-		throw new HTTPException(401, { message: 'User not found' })
-	}
+		if (!user) {
+			throw new HTTPException(401, { message: 'User not found' })
+		}
 
-	const accessToken = await generateAccessToken(user.id, user.username)
+		const newAccessToken = await generateAccessToken(user.id, user.username)
 
-	await trackUserToken(user.id, accessToken)
+		await trackUserToken(user.id, newAccessToken)
 
-	return c.json({
-		accessToken,
+		return newAccessToken
 	})
+
+	return c.json(
+		{
+			accessToken,
+		},
+		200
+	)
 })
 
 const authenticatedAuthRouter = new OpenAPIHono<{ Variables: Variables }>({
@@ -346,8 +193,7 @@ const authenticatedAuthRouter = new OpenAPIHono<{ Variables: Variables }>({
 authenticatedAuthRouter.use('*', responseMiddleware)
 authenticatedAuthRouter.use('*', authMiddleware)
 
-// @ts-expect-error - OpenAPI type inference issue
-authenticatedAuthRouter.openapi(logoutRoute, async (c) => {
+authenticatedAuthRouter.openapi(logoutRoute, async (c): Promise<RouteConfigToTypedResponse<typeof logoutRoute>> => {
 	const { refreshToken: refreshTokenValue } = c.req.valid('json')
 	const auth = c.get('auth')
 
@@ -363,22 +209,24 @@ authenticatedAuthRouter.openapi(logoutRoute, async (c) => {
 
 	logger.info('User logged out', { userId: auth.userId, username: auth.username })
 
-	return c.json({ message: 'Logged out successfully' })
+	return c.json({ message: 'Logged out successfully' }, 200)
 })
 
-// @ts-expect-error - OpenAPI type inference issue
-authenticatedAuthRouter.openapi(logoutAllRoute, async (c) => {
-	const auth = c.get('auth')
+authenticatedAuthRouter.openapi(
+	logoutAllRoute,
+	async (c): Promise<RouteConfigToTypedResponse<typeof logoutAllRoute>> => {
+		const auth = c.get('auth')
 
-	await Promise.all([
-		db.delete(refreshTokens).where(eq(refreshTokens.userId, auth.userId)),
-		addUserTokensToBlacklist(auth.userId, getAccessTokenExpiry()),
-	])
+		await Promise.all([
+			db.delete(refreshTokens).where(eq(refreshTokens.userId, auth.userId)),
+			addUserTokensToBlacklist(auth.userId, getAccessTokenExpiry()),
+		])
 
-	logger.warn('User terminated all sessions', { userId: auth.userId, username: auth.username })
+		logger.warn('User terminated all sessions', { userId: auth.userId, username: auth.username })
 
-	return c.json({ message: 'All sessions terminated successfully' })
-})
+		return c.json({ message: 'All sessions terminated successfully' }, 200)
+	}
+)
 
 authRouter.route('/', authenticatedAuthRouter)
 

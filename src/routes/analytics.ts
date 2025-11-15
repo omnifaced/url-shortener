@@ -1,124 +1,14 @@
+import type { RouteConfigToTypedResponse } from '@hono/zod-openapi'
 import { authMiddleware, responseMiddleware } from '../middleware'
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { HTTPException } from 'hono/http-exception'
+import { linkStatsRoute, overviewRoute } from '../openapi'
 import { eq, and, count, desc, sql } from 'drizzle-orm'
 import { validationErrorWrapperHook } from '../hooks'
-import { linkIdParamSchema } from '../validators'
+import { HTTPException } from 'hono/http-exception'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { links, clicks } from '../db/schema'
 import type { Variables } from '../types'
 import { logger } from '../lib'
 import { db } from '../db'
-
-const errorResponseSchema = z.object({
-	error: z.string(),
-})
-
-const clickDetailSchema = z.object({
-	id: z.number().openapi({ example: 1 }),
-	clickedAt: z.string().openapi({ example: '2025-01-15T10:30:00Z' }),
-	ip: z.string().nullable().openapi({ example: '192.168.1.1' }),
-	userAgent: z.string().nullable().openapi({ example: 'Mozilla/5.0...' }),
-	referer: z.string().nullable().openapi({ example: 'https://google.com' }),
-})
-
-const clicksByDateSchema = z.object({
-	date: z.string().openapi({ example: '2025-01-15' }),
-	count: z.number().openapi({ example: 42 }),
-})
-
-const topRefererSchema = z.object({
-	referer: z.string().nullable().openapi({ example: 'https://google.com' }),
-	count: z.number().openapi({ example: 15 }),
-})
-
-const linkStatsResponseSchema = z.object({
-	link: z.object({
-		id: z.number().openapi({ example: 1 }),
-		originalUrl: z.string().openapi({ example: 'https://example.com/very/long/url' }),
-		shortCode: z.string().openapi({ example: 'abc123' }),
-		title: z.string().nullable().openapi({ example: 'My Link' }),
-		createdAt: z.string().openapi({ example: '2025-01-01T00:00:00Z' }),
-	}),
-	totalClicks: z.number().openapi({ example: 150 }),
-	recentClicks: z.array(clickDetailSchema),
-	clicksByDate: z.array(clicksByDateSchema),
-	topReferers: z.array(topRefererSchema),
-})
-
-const topLinkSchema = z.object({
-	linkId: z.number().openapi({ example: 1 }),
-	originalUrl: z.string().openapi({ example: 'https://example.com' }),
-	shortCode: z.string().openapi({ example: 'abc123' }),
-	title: z.string().nullable().openapi({ example: 'My Link' }),
-	clickCount: z.number().openapi({ example: 42 }),
-})
-
-const overviewResponseSchema = z.object({
-	totalLinks: z.number().openapi({ example: 25 }),
-	totalClicks: z.number().openapi({ example: 500 }),
-	topLinks: z.array(topLinkSchema),
-})
-
-const linkStatsRoute = createRoute({
-	method: 'get',
-	path: '/links/{id}/stats',
-	tags: ['Analytics'],
-	security: [{ Bearer: [] }],
-	request: {
-		params: linkIdParamSchema,
-	},
-	responses: {
-		200: {
-			content: {
-				'application/json': {
-					schema: linkStatsResponseSchema,
-				},
-			},
-			description: 'Link statistics',
-		},
-		401: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Unauthorized',
-		},
-		404: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Link not found',
-		},
-	},
-})
-
-const overviewRoute = createRoute({
-	method: 'get',
-	path: '/overview',
-	tags: ['Analytics'],
-	security: [{ Bearer: [] }],
-	responses: {
-		200: {
-			content: {
-				'application/json': {
-					schema: overviewResponseSchema,
-				},
-			},
-			description: 'Analytics overview',
-		},
-		401: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Unauthorized',
-		},
-	},
-})
 
 const analyticsRouter = new OpenAPIHono<{ Variables: Variables }>({
 	defaultHook: validationErrorWrapperHook,
@@ -127,8 +17,7 @@ const analyticsRouter = new OpenAPIHono<{ Variables: Variables }>({
 analyticsRouter.use('*', responseMiddleware)
 analyticsRouter.use('*', authMiddleware)
 
-// @ts-expect-error - OpenAPI type inference issue
-analyticsRouter.openapi(linkStatsRoute, async (c) => {
+analyticsRouter.openapi(linkStatsRoute, async (c): Promise<RouteConfigToTypedResponse<typeof linkStatsRoute>> => {
 	const { id } = c.req.valid('param')
 	const auth = c.get('auth')
 
@@ -187,29 +76,31 @@ analyticsRouter.openapi(linkStatsRoute, async (c) => {
 		totalClicks: totalClicks.count,
 	})
 
-	return c.json({
-		link: {
-			id: link.id,
-			originalUrl: link.originalUrl,
-			shortCode: link.shortCode,
-			title: link.title,
-			createdAt: link.createdAt.toISOString(),
+	return c.json(
+		{
+			link: {
+				id: link.id,
+				originalUrl: link.originalUrl,
+				shortCode: link.shortCode,
+				title: link.title,
+				createdAt: link.createdAt.toISOString(),
+			},
+			totalClicks: totalClicks.count,
+			recentClicks: recentClicks.map((click) => ({
+				id: click.id,
+				clickedAt: click.clickedAt.toISOString(),
+				ip: click.ip,
+				userAgent: click.userAgent,
+				referer: click.referer,
+			})),
+			clicksByDate,
+			topReferers,
 		},
-		totalClicks: totalClicks.count,
-		recentClicks: recentClicks.map((click) => ({
-			id: click.id,
-			clickedAt: click.clickedAt.toISOString(),
-			ip: click.ip,
-			userAgent: click.userAgent,
-			referer: click.referer,
-		})),
-		clicksByDate,
-		topReferers,
-	})
+		200
+	)
 })
 
-// @ts-expect-error - OpenAPI type inference issue
-analyticsRouter.openapi(overviewRoute, async (c) => {
+analyticsRouter.openapi(overviewRoute, async (c): Promise<RouteConfigToTypedResponse<typeof overviewRoute>> => {
 	const auth = c.get('auth')
 
 	const [totalLinks] = await db.select({ count: count() }).from(links).where(eq(links.userId, auth.userId))
@@ -247,11 +138,14 @@ analyticsRouter.openapi(overviewRoute, async (c) => {
 		totalClicks: totalClicks.count,
 	})
 
-	return c.json({
-		totalLinks: totalLinks.count,
-		totalClicks: totalClicks.count,
-		topLinks,
-	})
+	return c.json(
+		{
+			totalLinks: totalLinks.count,
+			totalClicks: totalClicks.count,
+			topLinks,
+		},
+		200
+	)
 })
 
 export { analyticsRouter }

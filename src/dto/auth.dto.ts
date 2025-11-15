@@ -13,3 +13,16 @@ export const loginSchema = z.object({
 export const refreshSchema = z.object({
 	refreshToken: z.string().min(1).openapi({ example: 'abc123...' }),
 })
+
+export const authResponseSchema = z.object({
+	accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+	refreshToken: z.string().openapi({ example: 'abc123...' }),
+	user: z.object({
+		id: z.number().openapi({ example: 1 }),
+		username: z.string().openapi({ example: 'johndoe' }),
+	}),
+})
+
+export const refreshResponseSchema = z.object({
+	accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+})

@@ -1,46 +1,12 @@
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import { HTTPException } from 'hono/http-exception'
 import { validationErrorWrapperHook } from '../hooks'
-import { shortCodeParamSchema } from '../validators'
+import { HTTPException } from 'hono/http-exception'
 import { responseMiddleware } from '../middleware'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { links, clicks } from '../db/schema'
+import { redirectRoute } from '../openapi'
 import { redis, logger } from '../lib'
 import { eq } from 'drizzle-orm'
 import { db } from '../db'
-
-const errorResponseSchema = z.object({
-	error: z.string(),
-})
-
-const redirectRoute = createRoute({
-	method: 'get',
-	path: '/{shortCode}',
-	tags: ['Redirect'],
-	request: {
-		params: shortCodeParamSchema,
-	},
-	responses: {
-		301: {
-			description: 'Redirect to original URL',
-		},
-		404: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Link not found',
-		},
-		410: {
-			content: {
-				'application/json': {
-					schema: errorResponseSchema,
-				},
-			},
-			description: 'Link is inactive or expired',
-		},
-	},
-})
 
 const redirectRouter = new OpenAPIHono({
 	defaultHook: validationErrorWrapperHook,

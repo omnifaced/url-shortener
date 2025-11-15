@@ -11,7 +11,10 @@ export async function authMiddleware(c: Context, next: Next) {
 	const authHeader = c.req.header('Authorization')
 
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		throw new HTTPException(401, { message: 'Unauthorized', cause: { message: 'Missing or invalid Authorization header' } })
+		throw new HTTPException(401, {
+			message: 'Unauthorized',
+			cause: { message: 'Missing or invalid Authorization header' },
+		})
 	}
 
 	const token = authHeader.substring(7)
