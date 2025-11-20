@@ -6,11 +6,8 @@ import { rateLimiter } from 'hono-rate-limiter'
 import { errorHandler } from './error-handler'
 import { swaggerUI } from '@hono/swagger-ui'
 import { hasCerts } from './start-server'
-import { compress } from 'hono/compress'
-import { landingPage } from '../views'
 import { cors } from 'hono/cors'
 import { csrf } from 'hono/csrf'
-import { etag } from 'hono/etag'
 import { redis } from '../lib'
 
 const limiter = rateLimiter({
@@ -45,8 +42,6 @@ export function createApp(): OpenAPIHono {
 	app.use('*', structuredLogger)
 	app.use('*', limiter)
 	app.use('*', csrf())
-	app.use('*', etag())
-	app.use('*', compress())
 
 	app.use('/favicon.ico', serveStatic({ path: './assets/favicon.ico' }))
 
@@ -73,10 +68,6 @@ export function createApp(): OpenAPIHono {
 	})
 
 	app.get('/api/docs', swaggerUI({ url: '/api/doc' }))
-
-	app.get('/', (c) => {
-		return c.html(landingPage())
-	})
 
 	app.route('/api/auth', authRouter)
 	app.route('/api/links', linksRouter)

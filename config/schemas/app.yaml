@@ -1,0 +1,11 @@
+type: object
+properties:
+  port:
+    type: integer
+  host:
+    type: string
+  redirect_url:
+    type: string
+required:
+  - port
+  - host

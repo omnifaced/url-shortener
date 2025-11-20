@@ -4,7 +4,8 @@ CREATE TABLE "clicks" (
 	"clicked_at" timestamp DEFAULT now() NOT NULL,
 	"ip" varchar(45),
 	"user_agent" text,
-	"referer" text
+	"referer" text,
+	"device_info" jsonb
 );
 --> statement-breakpoint
 CREATE TABLE "links" (
@@ -41,6 +42,8 @@ CREATE TABLE "users" (
 ALTER TABLE "clicks" ADD CONSTRAINT "clicks_link_id_links_id_fk" FOREIGN KEY ("link_id") REFERENCES "public"."links"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "links" ADD CONSTRAINT "links_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "clicks_link_id_idx" ON "clicks" USING btree ("link_id");--> statement-breakpoint
+CREATE INDEX "clicks_clicked_at_idx" ON "clicks" USING btree ("clicked_at");--> statement-breakpoint
 CREATE INDEX "links_user_id_idx" ON "links" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "links_short_code_idx" ON "links" USING btree ("short_code");--> statement-breakpoint
 CREATE INDEX "links_expires_at_idx" ON "links" USING btree ("expires_at");

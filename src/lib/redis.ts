@@ -1,24 +1,20 @@
-import Redis from 'ioredis'
-
+import { createClient } from 'redis'
+import { config } from '../config'
 import { logger } from './logger'
 
-const redisUrl = process.env.REDIS_URL
+export const redis = createClient({
+	url: config.redis.url,
+	username: config.redis.username,
+	password: config.redis.password,
+	socket: {
+		reconnectStrategy: (retries) => {
+			if (retries > 3) {
+				logger.warn(`Redis retry attempts exhausted after ${retries} tries`)
+				return new Error('Max retries reached')
+			}
 
-if (!redisUrl) {
-	throw new Error('REDIS_URL environment variable is not set')
-}
-
-export const redis = new Redis(redisUrl, {
-	username: process.env.REDIS_USERNAME,
-	password: process.env.REDIS_PASSWORD,
-	maxRetriesPerRequest: 3,
-	retryStrategy: (times) => {
-		if (times > 3) {
-			logger.warn(`Redis retry attempts exhausted after ${times} tries`)
-			return null
-		}
-
-		return Math.min(times * 200, 1000)
+			return Math.min(retries * 200, 1000)
+		},
 	},
 })
 
@@ -26,7 +22,7 @@ redis.on('error', (error) => {
 	logger.error('Redis connection error', error)
 })
 
-redis.on('connect', () => {
+redis.on('ready', () => {
 	logger.success('Redis connected successfully')
 })
 
@@ -34,6 +30,8 @@ redis.on('reconnecting', () => {
 	logger.warn('Redis reconnecting...')
 })
 
-redis.on('close', () => {
+redis.on('end', () => {
 	logger.warn('Redis connection closed')
 })
+
+await redis.connect()

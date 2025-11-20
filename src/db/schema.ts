@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, varchar, boolean, index } from 'drizzle-orm/pg-core'
+import { pgTable, serial, text, timestamp, integer, varchar, boolean, index, jsonb } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
 	id: serial('id').primaryKey(),
@@ -28,16 +28,21 @@ export const links = pgTable(
 	]
 )
 
-export const clicks = pgTable('clicks', {
-	id: serial('id').primaryKey(),
-	linkId: integer('link_id')
-		.notNull()
-		.references(() => links.id, { onDelete: 'cascade' }),
-	clickedAt: timestamp('clicked_at').defaultNow().notNull(),
-	ip: varchar('ip', { length: 45 }),
-	userAgent: text('user_agent'),
-	referer: text('referer'),
-})
+export const clicks = pgTable(
+	'clicks',
+	{
+		id: serial('id').primaryKey(),
+		linkId: integer('link_id')
+			.notNull()
+			.references(() => links.id, { onDelete: 'cascade' }),
+		clickedAt: timestamp('clicked_at').defaultNow().notNull(),
+		ip: varchar('ip', { length: 45 }),
+		userAgent: text('user_agent'),
+		referer: text('referer'),
+		deviceInfo: jsonb('device_info'),
+	},
+	(table) => [index('clicks_link_id_idx').on(table.linkId), index('clicks_clicked_at_idx').on(table.clickedAt)]
+)
 
 export const refreshTokens = pgTable('refresh_tokens', {
 	id: serial('id').primaryKey(),

@@ -6,11 +6,9 @@ import { validationErrorWrapperHook } from '../hooks'
 import { HTTPException } from 'hono/http-exception'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { links, clicks } from '../db/schema'
-import type { Variables } from '../types'
-import { logger } from '../lib'
 import { db } from '../db'
 
-const analyticsRouter = new OpenAPIHono<{ Variables: Variables }>({
+const analyticsRouter = new OpenAPIHono({
 	defaultHook: validationErrorWrapperHook,
 })
 
@@ -28,7 +26,6 @@ analyticsRouter.openapi(linkStatsRoute, async (c): Promise<RouteConfigToTypedRes
 		.limit(1)
 
 	if (!link) {
-		logger.warn('Link stats requested for non-existent link', { linkId: id, userId: auth.userId })
 		throw new HTTPException(404, { message: 'Link not found' })
 	}
 
@@ -41,6 +38,7 @@ analyticsRouter.openapi(linkStatsRoute, async (c): Promise<RouteConfigToTypedRes
 			ip: clicks.ip,
 			userAgent: clicks.userAgent,
 			referer: clicks.referer,
+			deviceInfo: clicks.deviceInfo,
 		})
 		.from(clicks)
 		.where(eq(clicks.linkId, id))
@@ -69,13 +67,6 @@ analyticsRouter.openapi(linkStatsRoute, async (c): Promise<RouteConfigToTypedRes
 		.orderBy(desc(count()))
 		.limit(10)
 
-	logger.info('Link stats retrieved', {
-		linkId: link.id,
-		userId: auth.userId,
-		shortCode: link.shortCode,
-		totalClicks: totalClicks.count,
-	})
-
 	return c.json(
 		{
 			link: {
@@ -92,6 +83,7 @@ analyticsRouter.openapi(linkStatsRoute, async (c): Promise<RouteConfigToTypedRes
 				ip: click.ip,
 				userAgent: click.userAgent,
 				referer: click.referer,
+				deviceInfo: click.deviceInfo,
 			})),
 			clicksByDate,
 			topReferers,
@@ -131,12 +123,6 @@ analyticsRouter.openapi(overviewRoute, async (c): Promise<RouteConfigToTypedResp
 					.orderBy(desc(count()))
 					.limit(10)
 			: []
-
-	logger.info('Analytics overview retrieved', {
-		userId: auth.userId,
-		totalLinks: totalLinks.count,
-		totalClicks: totalClicks.count,
-	})
 
 	return c.json(
 		{

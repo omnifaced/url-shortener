@@ -18,7 +18,10 @@ Server runs on `http://localhost:3000`
 
 ```bash
 pnpm install
-cp .example.env .env
+cp config/app.yaml.example config/app.yaml
+cp config/database.yaml.example config/database.yaml
+cp config/jwt.yaml.example config/jwt.yaml
+cp config/redis.yaml.example config/redis.yaml
 docker-compose up -d postgres redis
 pnpm db:push
 pnpm dev

@@ -4,7 +4,7 @@ const BLACKLIST_PREFIX = 'blacklist:token:'
 
 export async function addTokenToBlacklist(token: string, expiresInSeconds: number): Promise<void> {
 	const key = `${BLACKLIST_PREFIX}${token}`
-	await redis.setex(key, expiresInSeconds, '1')
+	await redis.setEx(key, expiresInSeconds, '1')
 }
 
 export async function isTokenBlacklisted(token: string): Promise<boolean> {
@@ -15,29 +15,29 @@ export async function isTokenBlacklisted(token: string): Promise<boolean> {
 
 export async function addUserTokensToBlacklist(userId: number, expiresInSeconds: number): Promise<void> {
 	const userKey = `user:${userId}:tokens`
-	const tokens = await redis.smembers(userKey)
+	const tokens = await redis.sMembers(userKey)
 
 	if (tokens.length === 0) {
 		return
 	}
 
-	const pipeline = redis.pipeline()
+	const multi = redis.multi()
 
 	for (const token of tokens) {
 		const key = `${BLACKLIST_PREFIX}${token}`
-		pipeline.setex(key, expiresInSeconds, '1')
+		multi.setEx(key, expiresInSeconds, '1')
 	}
 
-	pipeline.del(userKey)
-	await pipeline.exec()
+	multi.del(userKey)
+	await multi.exec()
 }
 
 export async function trackUserToken(userId: number, token: string): Promise<void> {
 	const userKey = `user:${userId}:tokens`
-	await redis.sadd(userKey, token)
+	await redis.sAdd(userKey, token)
 }
 
 export async function removeUserToken(userId: number, token: string): Promise<void> {
 	const userKey = `user:${userId}:tokens`
-	await redis.srem(userKey, token)
+	await redis.sRem(userKey, token)
 }

@@ -1,0 +1,11 @@
+{
+  'type': 'object',
+  'properties':
+    {
+      'app': { '$ref': 'config/schemas/app.yaml' },
+      'database': { '$ref': 'config/schemas/database.yaml' },
+      'jwt': { '$ref': 'config/schemas/jwt.yaml' },
+      'redis': { '$ref': 'config/schemas/redis.yaml' },
+    },
+  'required': ['app', 'database', 'jwt', 'redis'],
+}

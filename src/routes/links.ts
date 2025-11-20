@@ -1,16 +1,16 @@
 import { createLinkRoute, deleteLinkRoute, getLinkRoute, getQrCodeRoute, listLinksRoute } from '../openapi'
 import type { RouteConfigToTypedResponse } from '@hono/zod-openapi'
 import { authMiddleware, responseMiddleware } from '../middleware'
-import { generateShortCode, generateQrCode, logger } from '../lib'
+import { generateShortCode, generateQrCode } from '../lib'
 import { validationErrorWrapperHook } from '../hooks'
 import { HTTPException } from 'hono/http-exception'
 import { eq, and, desc, count } from 'drizzle-orm'
 import { OpenAPIHono } from '@hono/zod-openapi'
-import type { Variables } from '../types'
 import { links } from '../db/schema'
+import { config } from '../config'
 import { db } from '../db'
 
-const linksRouter = new OpenAPIHono<{ Variables: Variables }>({
+const linksRouter = new OpenAPIHono({
 	defaultHook: validationErrorWrapperHook,
 })
 
@@ -38,7 +38,6 @@ linksRouter.openapi(createLinkRoute, async (c) => {
 		}
 
 		if (attempts === maxAttempts) {
-			logger.error('Failed to generate unique short code', { userId: auth.userId, attempts })
 			throw new HTTPException(500, { message: 'Failed to generate unique short code' })
 		}
 
@@ -54,13 +53,6 @@ linksRouter.openapi(createLinkRoute, async (c) => {
 			.returning()
 
 		return link
-	})
-
-	logger.success('Link created', {
-		linkId: newLink.id,
-		userId: auth.userId,
-		shortCode: newLink.shortCode,
-		originalUrl: newLink.originalUrl,
 	})
 
 	return c.json(
@@ -93,8 +85,6 @@ linksRouter.openapi(listLinksRoute, async (c): Promise<RouteConfigToTypedRespons
 			.offset(offset),
 		db.select({ count: count() }).from(links).where(eq(links.userId, auth.userId)),
 	])
-
-	logger.info('Links list retrieved', { userId: auth.userId, page, limit, total: totalCount.count })
 
 	return c.json(
 		{
@@ -129,11 +119,8 @@ linksRouter.openapi(getLinkRoute, async (c): Promise<RouteConfigToTypedResponse<
 		.limit(1)
 
 	if (!link) {
-		logger.warn('Link get requested for non-existent link', { linkId: id, userId: auth.userId })
 		throw new HTTPException(404, { message: 'Link not found' })
 	}
-
-	logger.info('Link details retrieved', { linkId: link.id, userId: auth.userId, shortCode: link.shortCode })
 
 	return c.json(
 		{
@@ -159,11 +146,8 @@ linksRouter.openapi(deleteLinkRoute, async (c): Promise<RouteConfigToTypedRespon
 		.returning()
 
 	if (deleted.length === 0) {
-		logger.warn('Link delete requested for non-existent link', { linkId: id, userId: auth.userId })
 		throw new HTTPException(404, { message: 'Link not found' })
 	}
-
-	logger.success('Link deleted', { linkId: deleted[0].id, userId: auth.userId, shortCode: deleted[0].shortCode })
 
 	return c.json({ message: 'Link deleted successfully' }, 200)
 })
@@ -180,16 +164,12 @@ linksRouter.openapi(getQrCodeRoute, async (c) => {
 		.limit(1)
 
 	if (!link) {
-		logger.warn('QR code requested for non-existent link', { linkId: id, userId: auth.userId })
 		throw new HTTPException(404, { message: 'Link not found' })
 	}
 
-	const baseUrl = process.env.BASE_URL || 'http://localhost:3000'
-	const shortUrl = `${baseUrl}/${link.shortCode}`
+	const shortUrl = `${config.app.redirect_url}/${link.shortCode}`
 
 	const { data, contentType } = generateQrCode(shortUrl, { format, size, ecc })
-
-	logger.info('QR code generated', { linkId: id, userId: auth.userId, format, size })
 
 	return c.body(data, 200, {
 		'Content-Type': contentType,

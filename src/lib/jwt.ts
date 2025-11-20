@@ -1,7 +1,8 @@
 import { randomBytes } from 'node:crypto'
 import { sign, verify } from 'hono/jwt'
+import { config } from '../config'
 
-const JWT_SECRET = process.env.JWT_SECRET!
+const JWT_SECRET = config.jwt.secret
 const ACCESS_TOKEN_EXPIRY = 60 * 15
 const REFRESH_TOKEN_EXPIRY = 60 * 60 * 24 * 30
 

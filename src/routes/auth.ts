@@ -8,7 +8,6 @@ import {
 	hashPassword,
 	trackUserToken,
 	verifyPassword,
-	logger,
 } from '../lib'
 
 import { loginRoute, logoutAllRoute, logoutRoute, refreshRoute, registerRoute } from '../openapi'
@@ -18,11 +17,10 @@ import { validationErrorWrapperHook } from '../hooks'
 import { HTTPException } from 'hono/http-exception'
 import { users, refreshTokens } from '../db/schema'
 import { OpenAPIHono } from '@hono/zod-openapi'
-import type { Variables } from '../types'
 import { eq, and } from 'drizzle-orm'
 import { db } from '../db'
 
-const authRouter = new OpenAPIHono<{ Variables: Variables }>({
+const authRouter = new OpenAPIHono({
 	defaultHook: validationErrorWrapperHook,
 })
 
@@ -34,7 +32,6 @@ authRouter.openapi(registerRoute, async (c) => {
 	const existingUser = await db.select().from(users).where(eq(users.username, username)).limit(1)
 
 	if (existingUser.length > 0) {
-		logger.warn('Registration attempt with existing username', { username })
 		throw new HTTPException(400, { message: 'Username already exists' })
 	}
 
@@ -72,8 +69,6 @@ authRouter.openapi(registerRoute, async (c) => {
 		}
 	})
 
-	logger.success('User registered', { userId: result.newUser.id, username: result.newUser.username })
-
 	return c.json(
 		{
 			accessToken: result.accessToken,
@@ -93,14 +88,12 @@ authRouter.openapi(loginRoute, async (c): Promise<RouteConfigToTypedResponse<typ
 	const [user] = await db.select().from(users).where(eq(users.username, username)).limit(1)
 
 	if (!user) {
-		logger.warn('Login attempt with non-existent username', { username })
 		throw new HTTPException(401, { message: 'Invalid credentials' })
 	}
 
 	const isValidPassword = await verifyPassword(password, user.password)
 
 	if (!isValidPassword) {
-		logger.warn('Login attempt with invalid password', { userId: user.id, username })
 		throw new HTTPException(401, { message: 'Invalid credentials' })
 	}
 
@@ -125,12 +118,6 @@ authRouter.openapi(loginRoute, async (c): Promise<RouteConfigToTypedResponse<typ
 			accessToken,
 			refreshTokenValue,
 		}
-	})
-
-	logger.success('User logged in', {
-		userId: user.id,
-		username: user.username,
-		ip: c.req.header('x-forwarded-for') || c.req.header('x-real-ip'),
 	})
 
 	return c.json(
@@ -186,7 +173,7 @@ authRouter.openapi(refreshRoute, async (c): Promise<RouteConfigToTypedResponse<t
 	)
 })
 
-const authenticatedAuthRouter = new OpenAPIHono<{ Variables: Variables }>({
+const authenticatedAuthRouter = new OpenAPIHono({
 	defaultHook: validationErrorWrapperHook,
 })
 
@@ -207,8 +194,6 @@ authenticatedAuthRouter.openapi(logoutRoute, async (c): Promise<RouteConfigToTyp
 		accessToken ? addTokenToBlacklist(accessToken, getAccessTokenExpiry()) : Promise.resolve(),
 	])
 
-	logger.info('User logged out', { userId: auth.userId, username: auth.username })
-
 	return c.json({ message: 'Logged out successfully' }, 200)
 })
 
@@ -221,8 +206,6 @@ authenticatedAuthRouter.openapi(
 			db.delete(refreshTokens).where(eq(refreshTokens.userId, auth.userId)),
 			addUserTokensToBlacklist(auth.userId, getAccessTokenExpiry()),
 		])
-
-		logger.warn('User terminated all sessions', { userId: auth.userId, username: auth.username })
 
 		return c.json({ message: 'All sessions terminated successfully' }, 200)
 	}

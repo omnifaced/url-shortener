@@ -14,7 +14,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		logger.success('Graceful shutdown completed')
 		process.exit(0)
 	} catch (error) {
-		logger.error('Error during shutdown', { error })
+		logger.error('Error during shutdown', error)
 		process.exit(1)
 	}
 }

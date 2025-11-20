@@ -2,11 +2,6 @@ import { verifyToken, isTokenBlacklisted, logger } from '../lib'
 import { HTTPException } from 'hono/http-exception'
 import type { Context, Next } from 'hono'
 
-export interface AuthContext {
-	userId: number
-	username: string
-}
-
 export async function authMiddleware(c: Context, next: Next) {
 	const authHeader = c.req.header('Authorization')
 
