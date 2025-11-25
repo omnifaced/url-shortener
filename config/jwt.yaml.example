@@ -1,1 +1,3 @@
 secret: "your-secret-key-here"
+access_token_ttl: 900
+refresh_token_ttl: 2592000

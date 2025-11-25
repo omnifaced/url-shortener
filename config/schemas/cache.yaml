@@ -1,0 +1,9 @@
+type: object
+properties:
+  max_size:
+    type: integer
+  ttl:
+    type: integer
+required:
+  - max_size
+  - ttl

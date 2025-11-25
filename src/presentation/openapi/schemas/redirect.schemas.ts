@@ -1,0 +1,41 @@
+import { errorResponseSchema } from '../../../application'
+import { createRoute } from '@hono/zod-openapi'
+import { HTTP_STATUS } from '../../../shared'
+import { z } from 'zod'
+
+export const shortCodeParamSchema = z.object({
+	shortCode: z.string(),
+})
+
+export const redirectRoute = createRoute({
+	method: 'get',
+	path: '/{shortCode}',
+	tags: ['Redirect'],
+	request: {
+		params: shortCodeParamSchema,
+	},
+	responses: {
+		[HTTP_STATUS.MOVED_PERMANENTLY]: {
+			description: 'Redirect to original URL',
+		},
+		[HTTP_STATUS.FOUND]: {
+			description: 'Redirect to original URL',
+		},
+		[HTTP_STATUS.NOT_FOUND]: {
+			content: {
+				'application/json': {
+					schema: errorResponseSchema,
+				},
+			},
+			description: 'Short code not found',
+		},
+		[HTTP_STATUS.GONE]: {
+			content: {
+				'application/json': {
+					schema: errorResponseSchema,
+				},
+			},
+			description: 'Link expired or inactive',
+		},
+	},
+})

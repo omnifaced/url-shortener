@@ -2,5 +2,11 @@ type: object
 properties:
   secret:
     type: string
+  access_token_ttl:
+    type: integer
+  refresh_token_ttl:
+    type: integer
 required:
   - secret
+  - access_token_ttl
+  - refresh_token_ttl

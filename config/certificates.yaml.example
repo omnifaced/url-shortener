@@ -1,0 +1,2 @@
+cert_path: "./certificates/cert.pem"
+key_path: "./certificates/key.pem"

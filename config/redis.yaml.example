@@ -1,3 +1,5 @@
 url: => process.env.REDIS_URL || "redis://localhost:6379"
 username: => process.env.REDIS_USERNAME || ""
 password: => process.env.REDIS_PASSWORD || "mypassword"
+blacklist_prefix: "blacklist:token:"
+user_tokens_prefix: "user:"

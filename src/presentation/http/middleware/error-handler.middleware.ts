@@ -1,0 +1,100 @@
+import { HTTP_STATUS, getTraceId, logger } from '../../../shared'
+import { ApplicationError } from '../../../application'
+import { HTTPException } from 'hono/http-exception'
+import type { Context } from 'hono'
+import { ZodError } from 'zod'
+
+function mapErrorCodeToHttpStatus(code: string): number {
+	const statusMap: Record<string, number> = {
+		VALIDATION_ERROR: HTTP_STATUS.BAD_REQUEST,
+		UNAUTHORIZED: HTTP_STATUS.UNAUTHORIZED,
+		FORBIDDEN: HTTP_STATUS.FORBIDDEN,
+		NOT_FOUND: HTTP_STATUS.NOT_FOUND,
+		CONFLICT: HTTP_STATUS.CONFLICT,
+	}
+
+	return statusMap[code] ?? HTTP_STATUS.INTERNAL_SERVER_ERROR
+}
+
+function mapHttpStatusToErrorCode(status: number): string {
+	const statusMap: Record<number, string> = {
+		[HTTP_STATUS.BAD_REQUEST]: 'Bad Request',
+		[HTTP_STATUS.UNAUTHORIZED]: 'Unauthorized',
+		[HTTP_STATUS.FORBIDDEN]: 'Forbidden',
+		[HTTP_STATUS.NOT_FOUND]: 'Not Found',
+		[HTTP_STATUS.CONFLICT]: 'Conflict',
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
+	}
+
+	return statusMap[status] ?? 'Unknown error'
+}
+
+export async function errorHandler(err: Error, c: Context) {
+	if (err instanceof HTTPException) {
+		const code = mapHttpStatusToErrorCode(err.status)
+
+		return c.json(
+			{
+				error: {
+					message: code,
+					details: {
+						message: err.message,
+					},
+				},
+			},
+			err.status as never
+		)
+	}
+
+	if (err instanceof ApplicationError) {
+		const statusCode = mapErrorCodeToHttpStatus(err.code)
+
+		return c.json(
+			{
+				error: {
+					message: err.code,
+					details: {
+						message: err.message,
+					},
+				},
+			},
+			statusCode as never
+		)
+	}
+
+	if (err instanceof ZodError) {
+		return c.json(
+			{
+				error: {
+					message: 'VALIDATION_ERROR',
+					details: {
+						message: 'Validation error',
+						issues: err.issues,
+					},
+				},
+			},
+			HTTP_STATUS.BAD_REQUEST
+		)
+	}
+
+	const traceId = getTraceId()
+
+	logger.error('Unhandled error', {
+		error: err.message,
+		stack: err.stack,
+		...(traceId && { traceId }),
+	})
+
+	return c.json(
+		{
+			error: {
+				message: 'INTERNAL_SERVER_ERROR',
+				details: {
+					message: 'Internal server error',
+					...(traceId && { traceId }),
+				},
+			},
+		},
+		HTTP_STATUS.INTERNAL_SERVER_ERROR
+	)
+}

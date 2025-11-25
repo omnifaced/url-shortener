@@ -6,6 +6,9 @@
       'database': { '$ref': 'config/schemas/database.yaml' },
       'jwt': { '$ref': 'config/schemas/jwt.yaml' },
       'redis': { '$ref': 'config/schemas/redis.yaml' },
+      'short_code': { '$ref': 'config/schemas/short_code.yaml' },
+      'cache': { '$ref': 'config/schemas/cache.yaml' },
+      'certificates': { '$ref': 'config/schemas/certificates.yaml' },
     },
-  'required': ['app', 'database', 'jwt', 'redis'],
+  'required': ['app', 'database', 'jwt', 'redis', 'short_code', 'cache', 'certificates'],
 }

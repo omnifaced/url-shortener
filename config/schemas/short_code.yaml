@@ -1,0 +1,12 @@
+type: object
+properties:
+  length:
+    type: integer
+  max_length:
+    type: integer
+  max_attempts:
+    type: integer
+required:
+  - length
+  - max_length
+  - max_attempts

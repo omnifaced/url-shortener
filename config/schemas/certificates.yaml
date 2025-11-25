@@ -1,0 +1,9 @@
+type: object
+properties:
+  cert_path:
+    type: string
+  key_path:
+    type: string
+required:
+  - cert_path
+  - key_path
