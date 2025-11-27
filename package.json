@@ -15,7 +15,9 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"gen:types:config": "json2ts --additionalProperties false -i config/schemas/config.yaml -o src/shared/config/config.d.ts"
+		"gen:types:config": "json2ts --additionalProperties false -i config/schemas/config.yaml -o src/shared/config/config.d.ts",
+		"test": "node --import tsx --test --experimental-test-coverage \"src/**/*.test.ts\"",
+		"test:watch": "node --import tsx --test --watch \"src/**/*.test.ts\""
 	},
 	"dependencies": {
 		"@hono/node-server": "^1.19.6",

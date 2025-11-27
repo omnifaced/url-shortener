@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import * as schema from '../persistence/postgres/schema'
 
 import { linksActiveGauge, authTokensActiveGauge } from '../../shared'
@@ -17,3 +19,5 @@ export class MetricsUpdateService {
 		authTokensActiveGauge.set(activeTokensResult[0]?.count || 0)
 	}
 }
+
+/* node:coverage enable */

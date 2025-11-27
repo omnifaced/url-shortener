@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import { hasCertificates, getCertificatePaths, logger } from '../../shared'
 import type { OpenAPIHono } from '@hono/zod-openapi'
 import { createSecureServer } from 'node:http2'
@@ -45,3 +47,5 @@ export function createServerAdapter(
 		}
 	)
 }
+
+/* node:coverage enable */

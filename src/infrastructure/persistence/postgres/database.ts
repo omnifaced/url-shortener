@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import * as schema from './schema'
 
 import postgres from 'postgres'
@@ -19,3 +21,5 @@ export function createDatabase(connectionString: string) {
 }
 
 export type Database = ReturnType<typeof createDatabase>
+
+/* node:coverage enable */

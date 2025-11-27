@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import { linkExpirationTotal, tokenExpirationTotal, logger } from '../../shared'
 import type { LinkRepository, RefreshTokenRepository } from '../../domain'
 
@@ -55,3 +57,5 @@ export class CleanupService {
 		}
 	}
 }
+
+/* node:coverage enable */

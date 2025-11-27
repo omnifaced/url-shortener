@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import * as schema from '../schema'
 
 import { User, Id, Username, type UserRepository } from '../../../../domain'
@@ -71,3 +73,5 @@ export class UserRepositoryImpl implements UserRepository {
 		return result.length > 0
 	}
 }
+
+/* node:coverage enable */

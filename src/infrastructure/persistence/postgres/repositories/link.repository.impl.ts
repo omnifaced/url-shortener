@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import * as schema from '../schema'
 
 import { Link, Id, Url, ShortCode, type LinkRepository, type LinkListOptions } from '../../../../domain'
@@ -112,3 +114,5 @@ export class LinkRepositoryImpl implements LinkRepository {
 		})
 	}
 }
+
+/* node:coverage enable */

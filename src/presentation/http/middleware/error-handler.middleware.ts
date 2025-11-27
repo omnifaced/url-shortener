@@ -1,4 +1,4 @@
-import { HTTP_STATUS, getTraceId, logger } from '../../../shared'
+import { getTraceId, HTTP_STATUS, logger } from '../../../shared'
 import { ApplicationError } from '../../../application'
 import { HTTPException } from 'hono/http-exception'
 import type { Context } from 'hono'

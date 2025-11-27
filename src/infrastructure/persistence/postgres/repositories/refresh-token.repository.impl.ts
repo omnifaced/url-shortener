@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import * as schema from '../schema'
 
 import { RefreshToken, Id, type RefreshTokenRepository } from '../../../../domain'
@@ -60,3 +62,5 @@ export class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
 		})
 	}
 }
+
+/* node:coverage enable */

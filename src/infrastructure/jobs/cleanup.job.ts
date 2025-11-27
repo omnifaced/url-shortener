@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import type { MetricsUpdateService } from './metrics-update.service'
 import type { CleanupService } from './cleanup.service'
 import { logger } from '../../shared'
@@ -21,3 +23,5 @@ export function startCleanupJob(job: CronJob): void {
 export function stopCleanupJob(job: CronJob): void {
 	job.stop()
 }
+
+/* node:coverage enable */

@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import * as schema from '../schema'
 
 import {
@@ -130,3 +132,5 @@ export class ClickRepositoryImpl implements ClickRepository {
 		})
 	}
 }
+
+/* node:coverage enable */

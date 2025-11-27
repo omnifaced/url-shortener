@@ -8,7 +8,7 @@
 - **QR Code Generation**: Generate QR codes for shortened links (PNG/SVG formats)
 - **Analytics**: Track clicks, view statistics, and get detailed insights
 - **Authentication**: Secure JWT-based authentication with refresh tokens
-- **Multi-tenancy**: Each user manages their own links
+- **Multi-tenancy**: Each omnifaced manages their own links
 - **Caching**: Redis-based caching for high performance
 - **Metrics**: Prometheus metrics for monitoring
 - **Rate Limiting**: Built-in rate limiting protection
@@ -81,7 +81,7 @@ Once the server is running, API documentation is available at:
 ```
 src/
 ├── application/      # Use cases and business logic
-├── domain/           # Entities, value objects, repositories
+├── domain/           # Entities, value objects, url-shortenersitories
 ├── infrastructure/   # External adapters (DB, Redis, HTTP)
 ├── presentation/     # HTTP controllers and OpenAPI schemas
 ├── di/               # Dependency injection container

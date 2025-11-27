@@ -1,6 +1,10 @@
 import { type ConfigType, type GeneralConfigType, rateLimiter } from 'hono-rate-limiter'
 import type { RedisClientType } from 'redis'
 
+interface RateLimiterMiddleware extends ReturnType<typeof rateLimiter> {
+	_config: GeneralConfigType<ConfigType>
+}
+
 export function createRateLimiter(redis?: RedisClientType) {
 	const prefix = 'rate_limit:'
 	const config: GeneralConfigType<ConfigType> = {
@@ -47,5 +51,9 @@ export function createRateLimiter(redis?: RedisClientType) {
 		}
 	}
 
-	return rateLimiter(config)
+	const middleware = rateLimiter(config) as RateLimiterMiddleware
+
+	middleware._config = config
+
+	return middleware
 }

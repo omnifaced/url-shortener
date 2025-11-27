@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import { pgTable, serial, text, timestamp, integer, varchar, boolean, index, jsonb } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
@@ -55,3 +57,5 @@ export const refreshTokens = pgTable('refresh_tokens', {
 	expiresAt: timestamp('expires_at').notNull(),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+/* node:coverage enable */

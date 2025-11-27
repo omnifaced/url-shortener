@@ -21,7 +21,7 @@ export const authResponseSchema = z.object({
 		refreshToken: z.string().openapi({ example: 'abc123...' }),
 		user: z.object({
 			id: z.number().openapi({ example: 1 }),
-			username: z.string().openapi({ example: 'johndoe' }),
+			username: z.string().openapi({ example: 'omnifaced' }),
 		}),
 	}),
 })

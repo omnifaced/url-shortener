@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import type { JwtPort, JwtPayload } from '../../application'
 import { Id, Username } from '../../domain'
 import { randomBytes } from 'node:crypto'
@@ -50,3 +52,5 @@ export class JwtAdapter implements JwtPort {
 		}
 	}
 }
+
+/* node:coverage enable */

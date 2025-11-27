@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import { z } from '@hono/zod-openapi'
 
 export const createLinkSchema = z.object({
@@ -78,3 +80,5 @@ export interface ListLinksResponseDto {
 		totalPages: number
 	}
 }
+
+/* node:coverage enable */

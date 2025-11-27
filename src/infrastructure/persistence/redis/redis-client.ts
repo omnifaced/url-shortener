@@ -1,3 +1,5 @@
+/* node:coverage disable */
+
 import { createClient, type RedisClientType } from 'redis'
 import { logger } from '../../../shared'
 
@@ -42,3 +44,5 @@ export async function createRedisClient(config: {
 
 	return client as RedisClientType
 }
+
+/* node:coverage enable */

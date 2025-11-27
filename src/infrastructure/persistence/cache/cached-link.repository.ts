@@ -8,6 +8,8 @@ export class CachedLinkRepository implements LinkRepository {
 		private readonly cache: LinkCacheAdapter
 	) {}
 
+	/* node:coverage disable */
+
 	public async findById(id: Id): Promise<Link | null> {
 		return this.linkRepository.findById(id)
 	}
@@ -35,6 +37,8 @@ export class CachedLinkRepository implements LinkRepository {
 		return link
 	}
 
+	/* node:coverage enable */
+
 	public async findByUserId(userId: Id, options?: LinkListOptions): Promise<Link[]> {
 		return this.linkRepository.findByUserId(userId, options)
 	}
@@ -49,7 +53,6 @@ export class CachedLinkRepository implements LinkRepository {
 		await this.linkRepository.update(link)
 		this.cache.set(link.getShortCode().getValue(), link)
 	}
-
 	public async delete(id: Id): Promise<void> {
 		const link = await this.linkRepository.findById(id)
 		if (link) {
@@ -57,7 +60,6 @@ export class CachedLinkRepository implements LinkRepository {
 		}
 		await this.linkRepository.delete(id)
 	}
-
 	public async countByUserId(userId: Id): Promise<number> {
 		return this.linkRepository.countByUserId(userId)
 	}
