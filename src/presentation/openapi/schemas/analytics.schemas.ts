@@ -1,8 +1,9 @@
 import {
-	errorResponseSchema,
+	clientErrorResponseSchema,
 	linkIdParamSchema,
 	linkStatsResponseSchema,
 	overviewResponseSchema,
+	serverErrorResponseSchema,
 } from '../../../application'
 
 import { createRoute } from '@hono/zod-openapi'
@@ -28,7 +29,7 @@ export const linkStatsRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -36,10 +37,18 @@ export const linkStatsRoute = createRoute({
 		[HTTP_STATUS.NOT_FOUND]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Link not found',
+		},
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
+			content: {
+				'application/json': {
+					schema: serverErrorResponseSchema,
+				},
+			},
+			description: 'Internal server error',
 		},
 	},
 })
@@ -61,10 +70,18 @@ export const overviewRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
+		},
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
+			content: {
+				'application/json': {
+					schema: serverErrorResponseSchema,
+				},
+			},
+			description: 'Internal server error',
 		},
 	},
 })

@@ -1,12 +1,22 @@
 import { z } from '@hono/zod-openapi'
 
-export const errorResponseSchema = z.object({
+export const clientErrorResponseSchema = z.object({
 	success: z.literal(false),
 	error: z.object({
 		message: z.string(),
 		details: z.object({
 			message: z.string(),
-			traceId: z.string().optional(),
+		}),
+	}),
+})
+
+export const serverErrorResponseSchema = z.object({
+	success: z.literal(false),
+	error: z.object({
+		message: z.string(),
+		details: z.object({
+			message: z.string(),
+			traceId: z.string(),
 		}),
 	}),
 })

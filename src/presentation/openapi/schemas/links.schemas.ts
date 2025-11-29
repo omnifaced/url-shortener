@@ -1,12 +1,13 @@
 import {
+	clientErrorResponseSchema,
 	createLinkSchema,
-	errorResponseSchema,
 	linkIdParamSchema,
 	linkResponseSchema,
 	listLinksQuerySchema,
 	listLinksResponseSchema,
 	messageResponseSchema,
 	qrQuerySchema,
+	serverErrorResponseSchema,
 	updateLinkSchema,
 } from '../../../application'
 
@@ -39,7 +40,7 @@ export const createLinkRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -47,7 +48,7 @@ export const createLinkRoute = createRoute({
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: serverErrorResponseSchema,
 				},
 			},
 			description: 'Failed to generate unique short code',
@@ -75,10 +76,18 @@ export const listLinksRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
+		},
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
+			content: {
+				'application/json': {
+					schema: serverErrorResponseSchema,
+				},
+			},
+			description: 'Internal server error',
 		},
 	},
 })
@@ -103,7 +112,7 @@ export const getLinkRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -111,10 +120,18 @@ export const getLinkRoute = createRoute({
 		[HTTP_STATUS.NOT_FOUND]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Link not found',
+		},
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
+			content: {
+				'application/json': {
+					schema: serverErrorResponseSchema,
+				},
+			},
+			description: 'Internal server error',
 		},
 	},
 })
@@ -146,7 +163,7 @@ export const updateLinkRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -154,10 +171,18 @@ export const updateLinkRoute = createRoute({
 		[HTTP_STATUS.NOT_FOUND]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Link not found',
+		},
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
+			content: {
+				'application/json': {
+					schema: serverErrorResponseSchema,
+				},
+			},
+			description: 'Internal server error',
 		},
 	},
 })
@@ -182,7 +207,7 @@ export const deleteLinkRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -190,10 +215,18 @@ export const deleteLinkRoute = createRoute({
 		[HTTP_STATUS.NOT_FOUND]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Link not found',
+		},
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
+			content: {
+				'application/json': {
+					schema: serverErrorResponseSchema,
+				},
+			},
+			description: 'Internal server error',
 		},
 	},
 })
@@ -228,7 +261,7 @@ export const getQrCodeRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -236,10 +269,18 @@ export const getQrCodeRoute = createRoute({
 		[HTTP_STATUS.NOT_FOUND]: {
 			content: {
 				'application/json': {
-					schema: errorResponseSchema,
+					schema: clientErrorResponseSchema,
 				},
 			},
 			description: 'Link not found',
+		},
+		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
+			content: {
+				'application/json': {
+					schema: serverErrorResponseSchema,
+				},
+			},
+			description: 'Internal server error',
 		},
 	},
 })

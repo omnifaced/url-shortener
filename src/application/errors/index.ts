@@ -1,10 +1,6 @@
-/* node:coverage disable */
-
 export { UnauthorizedError } from './unauthorized.error'
 export { ValidationError } from './validation.error'
 export { ForbiddenError } from './forbidden.error'
 export { NotFoundError } from './not-found.error'
 export { ConflictError } from './conflict.error'
 export { ApplicationError } from './base.error'
-
-/* node:coverage enable */

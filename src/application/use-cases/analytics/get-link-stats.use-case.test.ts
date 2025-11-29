@@ -158,4 +158,36 @@ describe('GetLinkStatsUseCase', () => {
 		assert.strictEqual(result.clicksByDate.length, 0)
 		assert.strictEqual(result.topReferers.length, 0)
 	})
+
+	test('should return link stats with expiresAt', async () => {
+		const expiresAt = new Date('2025-12-31')
+		const link = Link.create({
+			id: Id.create(1),
+			userId: Id.create(10),
+			originalUrl: Url.create('https://example.com'),
+			shortCode: ShortCode.create('abc123'),
+			title: null,
+			isActive: true,
+			createdAt: new Date(),
+			expiresAt,
+		})
+
+		const mockLinkRepository: LinkRepository = {
+			findById: mock.fn(async () => link),
+		} as unknown as LinkRepository
+
+		const mockClickRepository: ClickRepository = {
+			countByLinkId: mock.fn(async () => 0),
+			findByLinkId: mock.fn(async () => []),
+			getClicksByDate: mock.fn(async () => []),
+			getTopReferers: mock.fn(async () => []),
+		} as unknown as ClickRepository
+
+		const useCase = new GetLinkStatsUseCase(mockLinkRepository, mockClickRepository)
+
+		const result = await useCase.execute(10, 1)
+
+		assert.strictEqual(result.link.expiresAt, expiresAt.toISOString())
+		assert.strictEqual(result.link.isActive, true)
+	})
 })

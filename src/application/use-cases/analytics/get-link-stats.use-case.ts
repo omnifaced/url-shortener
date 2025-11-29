@@ -33,7 +33,9 @@ export class GetLinkStatsUseCase {
 				originalUrl: link.getOriginalUrl().getValue(),
 				shortCode: link.getShortCode().getValue(),
 				title: link.getTitle(),
+				isActive: link.getIsActive(),
 				createdAt: link.getCreatedAt().toISOString(),
+				expiresAt: link.getExpiresAt()?.toISOString() ?? null,
 			},
 			totalClicks,
 			recentClicks: recentClicks.map((click) => ({

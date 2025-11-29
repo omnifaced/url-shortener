@@ -1,5 +1,3 @@
-/* node:coverage disable */
-
 import { z } from '@hono/zod-openapi'
 
 export const createLinkSchema = z.object({
@@ -37,9 +35,9 @@ export const qrQuerySchema = z.object({
 	ecc: z.enum(['low', 'medium', 'quartile', 'high']).optional().default('medium').openapi({ example: 'medium' }),
 })
 
-const linkDataSchema = z.object({
+export const linkDataSchema = z.object({
 	id: z.number().openapi({ example: 1 }),
-	originalUrl: z.string().openapi({ example: 'https://example.com/very/long/url' }),
+	originalUrl: z.string().openapi({ example: 'https://github.com/omnifaced' }),
 	shortCode: z.string().openapi({ example: 'abc123' }),
 	title: z.string().nullable().openapi({ example: 'My Example Link' }),
 	isActive: z.boolean().openapi({ example: true }),
@@ -80,5 +78,3 @@ export interface ListLinksResponseDto {
 		totalPages: number
 	}
 }
-
-/* node:coverage enable */

@@ -1,3 +1,4 @@
+import { linkDataSchema, type LinkResponseDto } from './link.dto'
 import { z } from '@hono/zod-openapi'
 
 export const clickDetailSchema = z.object({
@@ -14,13 +15,13 @@ export const clicksByDateSchema = z.object({
 })
 
 export const topRefererSchema = z.object({
-	referer: z.string().nullable().openapi({ example: '2025-01-15' }),
+	referer: z.string().nullable().openapi({ example: 'https://google.com' }),
 	count: z.number().openapi({ example: 42 }),
 })
 
 const topLinkSchema = z.object({
-	linkId: z.number().openapi({ example: 1 }),
-	originalUrl: z.string().openapi({ example: 'https://example.com' }),
+	id: z.number().openapi({ example: 1 }),
+	originalUrl: z.string().openapi({ example: 'https://github.com/omnifaced' }),
 	shortCode: z.string().openapi({ example: 'abc123' }),
 	title: z.string().nullable().openapi({ example: 'My Link' }),
 	clickCount: z.number().openapi({ example: 42 }),
@@ -29,13 +30,7 @@ const topLinkSchema = z.object({
 export const linkStatsResponseSchema = z.object({
 	success: z.literal(true),
 	data: z.object({
-		link: z.object({
-			id: z.number().openapi({ example: 1 }),
-			originalUrl: z.string().openapi({ example: 'https://example.com/very/long/url' }),
-			shortCode: z.string().openapi({ example: 'abc123' }),
-			title: z.string().nullable().openapi({ example: 'My Link' }),
-			createdAt: z.string().openapi({ example: '2025-01-01T00:00:00Z' }),
-		}),
+		link: linkDataSchema,
 		totalClicks: z.number().openapi({ example: 150 }),
 		recentClicks: z.array(clickDetailSchema),
 		clicksByDate: z.array(clicksByDateSchema),
@@ -53,13 +48,7 @@ export const overviewResponseSchema = z.object({
 })
 
 export interface LinkStatsResponseDto {
-	link: {
-		id: number
-		originalUrl: string
-		shortCode: string
-		title: string | null
-		createdAt: string
-	}
+	link: LinkResponseDto
 	totalClicks: number
 	recentClicks: Array<z.infer<typeof clickDetailSchema>>
 	clicksByDate: Array<z.infer<typeof clicksByDateSchema>>

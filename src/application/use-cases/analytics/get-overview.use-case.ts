@@ -20,7 +20,7 @@ export class GetOverviewUseCase {
 		const clickCountMap = new Map(clickCounts.map((item) => [item.linkId.getValue(), item.count]))
 
 		const linksWithClicks = links.map((link) => ({
-			linkId: link.getId().getValue(),
+			id: link.getId().getValue(),
 			originalUrl: link.getOriginalUrl().getValue(),
 			shortCode: link.getShortCode().getValue(),
 			title: link.getTitle(),
