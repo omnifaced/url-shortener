@@ -1,2 +1,2 @@
 port: 3000
-host: "localhost"
+host: => process.env.APP_HOST || "localhost"
