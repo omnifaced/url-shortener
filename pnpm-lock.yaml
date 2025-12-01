@@ -39,8 +39,8 @@ importers:
         specifier: ^0.4.2
         version: 0.4.2(hono@4.10.7)
       lru-cache:
-        specifier: ^11.2.2
-        version: 11.2.2
+        specifier: ^11.2.4
+        version: 11.2.4
       postgres:
         specifier: ^3.4.7
         version: 3.4.7
@@ -721,8 +721,8 @@ packages:
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
-  lru-cache@11.2.2:
-    resolution: {integrity: sha512-F9ODfyqML2coTIsQpSkRHnLSZMtkU8Q+mSfcaIyKwy58u+8k5nvAYeiNhsyMARvzNcXJ9QfWVrcPsC9e9rAxtg==}
+  lru-cache@11.2.4:
+    resolution: {integrity: sha512-B5Y16Jr9LB9dHVkh6ZevG+vAbOsNOYCX+sXvFWFu7B3Iz5mijW3zdbMyhsh8ANd2mSWBYdJgnqi+mL7/LrOPYg==}
     engines: {node: 20 || >=22}
 
   luxon@3.7.2:
@@ -1223,7 +1223,7 @@ snapshots:
 
   lodash@4.17.21: {}
 
-  lru-cache@11.2.2: {}
+  lru-cache@11.2.4: {}
 
   luxon@3.7.2: {}
 
