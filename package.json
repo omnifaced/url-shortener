@@ -44,7 +44,7 @@
 		"@types/node": "^24.10.1",
 		"drizzle-kit": "^0.31.7",
 		"json-schema-to-typescript": "^15.0.4",
-		"tsx": "^4.20.6",
+		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	}
 }
