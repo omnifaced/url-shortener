@@ -27,7 +27,7 @@
 		"ajv": "^8.17.1",
 		"consola": "^3.4.2",
 		"cron": "^4.3.5",
-		"drizzle-orm": "^0.44.7",
+		"drizzle-orm": "^0.45.0",
 		"hono": "^4.10.7",
 		"hono-rate-limiter": "^0.4.2",
 		"lru-cache": "^11.2.4",
