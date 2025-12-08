@@ -70,8 +70,8 @@ importers:
         specifier: ^24.10.1
         version: 24.10.1
       drizzle-kit:
-        specifier: ^0.31.7
-        version: 0.31.7
+        specifier: ^0.31.8
+        version: 0.31.8
       json-schema-to-typescript:
         specifier: ^15.0.4
         version: 15.0.4
@@ -708,8 +708,8 @@ packages:
   detect-europe-js@0.1.2:
     resolution: {integrity: sha512-lgdERlL3u0aUdHocoouzT10d9I89VVhk0qNRmll7mXdGfJT1/wqZ2ZLA4oJAjeACPY5fT1wsbq2AT+GkuInsow==}
 
-  drizzle-kit@0.31.7:
-    resolution: {integrity: sha512-hOzRGSdyKIU4FcTSFYGKdXEjFsncVwHZ43gY3WU5Bz9j5Iadp6Rh6hxLSQ1IWXpKLBKt/d5y1cpSPcV+FcoQ1A==}
+  drizzle-kit@0.31.8:
+    resolution: {integrity: sha512-O9EC/miwdnRDY10qRxM8P3Pg8hXe3LyU4ZipReKOgTwn4OqANmftj8XJz1UPUAS6NMHf0E2htjsbQujUTkncCg==}
     hasBin: true
 
   drizzle-orm@0.44.7:
@@ -1338,7 +1338,7 @@ snapshots:
 
   detect-europe-js@0.1.2: {}
 
-  drizzle-kit@0.31.7:
+  drizzle-kit@0.31.8:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
