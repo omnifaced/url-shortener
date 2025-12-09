@@ -31,6 +31,8 @@ class PureConfig<T = Record<string, unknown>> {
 			process.exit(1)
 		}
 
+		/* node:coverage disable */
+
 		const filesPaths = readdirSync(dirPath)
 		const result: Record<string, unknown> = {}
 
@@ -41,21 +43,40 @@ class PureConfig<T = Record<string, unknown>> {
 				continue
 			}
 
+			/* node:coverage enable */
+
 			if (filePath.endsWith('.example')) {
 				continue
 			}
 
-			const fileContent = readFileSync(fileFullPath, 'utf-8')
-			const fileParsed = parseDocument(fileContent)
-			const fileSchemaPath = join(schemaDirPath, filePath)
+			let fileContent: string
 
-			if (!existsSync(fileSchemaPath)) {
-				this.logger.error(`Schema file not found: "${getRelativePath(fileSchemaPath)}"`)
+			try {
+				fileContent = readFileSync(fileFullPath, 'utf-8')
+			} catch (error) {
+				this.logger.error(
+					`Failed to read config file: "${getRelativePath(fileFullPath)}":`,
+					error instanceof Error ? error.message : JSON.stringify(error, null, 2)
+				)
 
 				process.exit(1)
 			}
 
-			const fileSchemaContent = readFileSync(fileSchemaPath, 'utf-8')
+			const fileParsed = parseDocument(fileContent)
+			const fileSchemaPath = join(schemaDirPath, filePath)
+
+			let fileSchemaContent: string
+			try {
+				fileSchemaContent = readFileSync(fileSchemaPath, 'utf-8')
+			} catch (error) {
+				this.logger.error(
+					`Schema file not found or cannot be read: "${getRelativePath(fileSchemaPath)}:"`,
+					error instanceof Error ? error.message : JSON.stringify(error, null, 2)
+				)
+
+				process.exit(1)
+			}
+
 			const fileSchemaParsed = parseDocument(fileSchemaContent)
 
 			try {
