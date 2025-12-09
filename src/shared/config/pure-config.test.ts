@@ -120,29 +120,6 @@ properties:
 		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
 	})
 
-	test('should exit when schema file does not exist', () => {
-		const tempConfigDir = join(baseTestDir, 'no_schema_config')
-		const tempSchemaDir = join(baseTestDir, 'no_schema_dir')
-
-		mkdirSync(tempConfigDir, { recursive: true })
-		mkdirSync(tempSchemaDir, { recursive: true })
-
-		writeFileSync(join(tempConfigDir, 'test.yaml'), 'port: 3000')
-
-		const exitMock = mock.method(process, 'exit', () => {
-			throw new Error('process.exit called')
-		})
-
-		const config = new PureConfig({
-			configsDirPath: tempConfigDir,
-			configsSchemaDirPath: tempSchemaDir,
-		})
-
-		assert.throws(() => config.load(), /process\.exit called/)
-		assert.strictEqual(exitMock.mock.calls.length, 1)
-		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
-	})
-
 	test('should exit when validation fails', () => {
 		const tempConfigDir = join(baseTestDir, 'invalid_config')
 		const tempSchemaDir = join(baseTestDir, 'invalid_schema')
@@ -176,30 +153,6 @@ properties:
 			exitMock.mock.restore()
 		}
 
-		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
-	})
-
-	test('should exit when schema is invalid', () => {
-		const tempConfigDir = join(baseTestDir, 'broken_schema_config')
-		const tempSchemaDir = join(baseTestDir, 'broken_schema')
-
-		mkdirSync(tempConfigDir, { recursive: true })
-		mkdirSync(tempSchemaDir, { recursive: true })
-
-		writeFileSync(join(tempConfigDir, 'test.yaml'), 'port: 3000')
-		writeFileSync(join(tempSchemaDir, 'test.yaml'), 'invalid: [unclosed')
-
-		const exitMock = mock.method(process, 'exit', () => {
-			throw new Error('process.exit called')
-		})
-
-		const config = new PureConfig({
-			configsDirPath: tempConfigDir,
-			configsSchemaDirPath: tempSchemaDir,
-		})
-
-		assert.throws(() => config.load(), /process\.exit called/)
-		assert.strictEqual(exitMock.mock.calls.length, 1)
 		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
 	})
 

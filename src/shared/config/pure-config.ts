@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs'
+import { readdirSync, openSync, fstatSync, readFileSync, existsSync, closeSync } from 'node:fs'
 import { getRelativePath, printValidatorErrors } from './utils'
 import { parseDocument } from 'yaml'
 import { consola } from 'consola'
@@ -39,62 +39,73 @@ class PureConfig<T = Record<string, unknown>> {
 		for (const filePath of filesPaths) {
 			const fileFullPath = join(dirPath, filePath)
 
-			if (statSync(fileFullPath).isDirectory()) {
-				continue
-			}
-
-			/* node:coverage enable */
-
-			if (filePath.endsWith('.example')) {
-				continue
-			}
-
-			let fileContent: string
+			let fd: number | undefined
 
 			try {
-				fileContent = readFileSync(fileFullPath, 'utf-8')
-			} catch (error) {
-				this.logger.error(
-					`Failed to read config file: "${getRelativePath(fileFullPath)}":`,
-					error instanceof Error ? error.message : JSON.stringify(error, null, 2)
-				)
+				fd = openSync(fileFullPath, 'r')
 
-				process.exit(1)
-			}
+				if (fstatSync(fd).isDirectory()) {
+					closeSync(fd)
+					continue
+				}
 
-			const fileParsed = parseDocument(fileContent)
-			const fileSchemaPath = join(schemaDirPath, filePath)
+				if (filePath.endsWith('.example')) {
+					closeSync(fd)
+					continue
+				}
 
-			let fileSchemaContent: string
-			try {
-				fileSchemaContent = readFileSync(fileSchemaPath, 'utf-8')
-			} catch (error) {
-				this.logger.error(
-					`Schema file not found or cannot be read: "${getRelativePath(fileSchemaPath)}:"`,
-					error instanceof Error ? error.message : JSON.stringify(error, null, 2)
-				)
+				const fileContent = readFileSync(fd, 'utf-8')
 
-				process.exit(1)
-			}
+				/* node:coverage enable */
 
-			const fileSchemaParsed = parseDocument(fileSchemaContent)
+				closeSync(fd)
+				fd = undefined
 
-			try {
-				const validate = this.ajv.compile(fileSchemaParsed.toJSON())
-				const fileKey = filePath.replace(/\.[^/.]+$/, '')
+				const fileParsed = parseDocument(fileContent)
+				const fileSchemaPath = join(schemaDirPath, filePath)
 
-				const requiredFields = this.getRequiredFields(fileSchemaParsed.toJSON())
+				let fileSchemaContent: string
+				try {
+					fileSchemaContent = readFileSync(fileSchemaPath, 'utf-8')
+				} catch (error) {
+					this.logger.error(
+						`Schema file not found or cannot be read: "${getRelativePath(fileSchemaPath)}:"`,
+						error instanceof Error ? error.message : JSON.stringify(error, null, 2)
+					)
 
-				result[fileKey] = this.resolveReferences(fileParsed.toJSON(), filePath, requiredFields)
+					process.exit(1)
+				}
 
-				if (!validate(result[fileKey])) {
-					printValidatorErrors(validate.errors || [], getRelativePath(fileFullPath), this.logger)
+				const fileSchemaParsed = parseDocument(fileSchemaContent)
+
+				try {
+					const validate = this.ajv.compile(fileSchemaParsed.toJSON())
+					const fileKey = filePath.replace(/\.[^/.]+$/, '')
+
+					const requiredFields = this.getRequiredFields(fileSchemaParsed.toJSON())
+
+					result[fileKey] = this.resolveReferences(fileParsed.toJSON(), filePath, requiredFields)
+
+					if (!validate(result[fileKey])) {
+						printValidatorErrors(validate.errors || [], getRelativePath(fileFullPath), this.logger)
+
+						process.exit(1)
+					}
+				} catch (error) {
+					this.logger.error(
+						`Failed to load or parse schema: "${getRelativePath(fileSchemaPath)}":`,
+						error instanceof Error ? error.message : JSON.stringify(error, null, 2)
+					)
 
 					process.exit(1)
 				}
 			} catch (error) {
+				if (fd !== undefined) {
+					closeSync(fd)
+				}
+
 				this.logger.error(
-					`Failed to load or parse schema: "${getRelativePath(fileSchemaPath)}":`,
+					`Failed to read config file: "${getRelativePath(fileFullPath)}":`,
 					error instanceof Error ? error.message : JSON.stringify(error, null, 2)
 				)
 

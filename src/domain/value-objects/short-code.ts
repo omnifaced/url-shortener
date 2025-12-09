@@ -22,18 +22,18 @@ export class ShortCode {
 	}
 
 	public static generate(): ShortCode {
-		const charsetLength = CHARACTERS.length;
-		const maxValidByte = 256 - (256 % charsetLength);
-		let code = '';
+		const charsetLength = CHARACTERS.length
+		const maxValidByte = 256 - (256 % charsetLength)
+		let code = ''
 
 		while (code.length < ShortCode.length) {
-			const byte = randomBytes(1)[0];
+			const byte = randomBytes(1)[0]
 			if (byte < maxValidByte) {
-				code += CHARACTERS[byte % charsetLength];
+				code += CHARACTERS[byte % charsetLength]
 			}
 		}
 
-		return new ShortCode(code);
+		return new ShortCode(code)
 	}
 
 	public getValue(): string {
