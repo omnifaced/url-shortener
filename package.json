@@ -41,7 +41,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.8",
-		"@types/node": "^24.10.2",
+		"@types/node": "^25.0.2",
 		"drizzle-kit": "^0.31.8",
 		"json-schema-to-typescript": "^15.0.4",
 		"tsx": "^4.21.0",
