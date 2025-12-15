@@ -19,9 +19,10 @@ import { ZodError, z } from 'zod'
 
 interface ErrorResponse {
 	error: {
+		code: string
 		message: string
-		details: {
-			message: string
+		details?: {
+			message?: string
 			issues?: unknown
 			traceId?: string
 		}
@@ -51,10 +52,8 @@ describe('errorHandler', () => {
 		assert.strictEqual(result.status, 404)
 		assert.deepStrictEqual(result._data, {
 			error: {
-				message: 'Not Found',
-				details: {
-					message: 'Not found',
-				},
+				code: 'NOT_FOUND',
+				message: 'Not found',
 			},
 		})
 	})
@@ -68,10 +67,8 @@ describe('errorHandler', () => {
 		assert.strictEqual(result.status, 400)
 		assert.deepStrictEqual(result._data, {
 			error: {
-				message: 'VALIDATION_ERROR',
-				details: {
-					message: 'Invalid input',
-				},
+				code: 'VALIDATION_ERROR',
+				message: 'Invalid input',
 			},
 		})
 	})
@@ -87,8 +84,10 @@ describe('errorHandler', () => {
 				const result = (await errorHandler(err, c)) as MockResult
 
 				assert.strictEqual(result.status, 400)
-				assert.strictEqual(result._data.error.message, 'VALIDATION_ERROR')
-				assert.strictEqual(result._data.error.details.message, 'Validation error')
+				assert.strictEqual(result._data.error.code, 'VALIDATION_ERROR')
+				assert.strictEqual(result._data.error.message, 'Validation error')
+				assert.ok(result._data.error.details)
+				assert.ok(result._data.error.details.issues)
 			}
 		}
 	})
@@ -100,8 +99,8 @@ describe('errorHandler', () => {
 		const result = (await errorHandler(error, c)) as MockResult
 
 		assert.strictEqual(result.status, 500)
-		assert.strictEqual(result._data.error.message, 'INTERNAL_SERVER_ERROR')
-		assert.strictEqual(result._data.error.details.message, 'Internal server error')
+		assert.strictEqual(result._data.error.code, 'INTERNAL_SERVER_ERROR')
+		assert.strictEqual(result._data.error.message, 'Internal server error')
 	})
 
 	test('should map error codes correctly', async () => {
@@ -132,10 +131,11 @@ describe('errorHandler', () => {
 		})
 
 		assert.strictEqual(result.status, 500)
-		assert.strictEqual(result._data.error.message, 'INTERNAL_SERVER_ERROR')
+		assert.strictEqual(result._data.error.code, 'INTERNAL_SERVER_ERROR')
+		assert.strictEqual(result._data.error.message, 'Internal server error')
 
-		const details = result._data.error.details
-		assert.strictEqual(details.traceId, 'abc-123')
+		assert.ok(result._data.error.details)
+		assert.strictEqual(result._data.error.details.traceId, 'abc-123')
 
 		assert.strictEqual(loggerMock.mock.calls.length, 1)
 	})
@@ -145,7 +145,7 @@ describe('errorHandler', () => {
 
 		class CustomError extends ApplicationError {
 			constructor() {
-				super('UNKNOWN_CODE', 'Custom error')
+				super('Custom error', 'UNKNOWN_CODE')
 			}
 		}
 
@@ -153,7 +153,7 @@ describe('errorHandler', () => {
 		const result = (await errorHandler(error, c)) as MockResult
 
 		assert.strictEqual(result.status, 500)
-		assert.strictEqual(result._data.error.details.message, 'UNKNOWN_CODE')
+		assert.strictEqual(result._data.error.code, 'UNKNOWN_CODE')
 		assert.strictEqual(result._data.error.message, 'Custom error')
 	})
 
@@ -166,10 +166,8 @@ describe('errorHandler', () => {
 		assert.strictEqual(result.status, 418)
 		assert.deepStrictEqual(result._data, {
 			error: {
-				message: 'Unknown error',
-				details: {
-					message: 'I am a teapot',
-				},
+				code: 'UNKNOWN_ERROR',
+				message: 'I am a teapot',
 			},
 		})
 	})
@@ -182,9 +180,9 @@ describe('errorHandler', () => {
 		const result = (await errorHandler(error, c)) as MockResult
 
 		assert.strictEqual(result.status, 500)
-		assert.strictEqual(result._data.error.message, 'INTERNAL_SERVER_ERROR')
-		assert.strictEqual(result._data.error.details.message, 'Internal server error')
-		assert.strictEqual(result._data.error.details.traceId, undefined)
+		assert.strictEqual(result._data.error.code, 'INTERNAL_SERVER_ERROR')
+		assert.strictEqual(result._data.error.message, 'Internal server error')
+		assert.strictEqual(result._data.error.details, undefined)
 
 		assert.strictEqual(loggerMock.mock.calls.length, 1)
 	})

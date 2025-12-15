@@ -10,6 +10,7 @@ export const validationErrorWrapperHook = async (result: Record<string, unknown>
 			{
 				success: false,
 				error: {
+					code: 'VALIDATION_ERROR',
 					message: 'Validation error',
 					details: firstIssue,
 				},

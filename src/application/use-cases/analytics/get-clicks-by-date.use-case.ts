@@ -1,14 +1,18 @@
 import { Id, type LinkRepository, type ClickRepository } from '../../../domain'
+import type { ClicksByDateQueryDto, ClicksByDateResponseDto } from '../../dto'
 import { NotFoundError, ForbiddenError } from '../../errors'
-import type { LinkStatsResponseDto } from '../../dto'
 
-export class GetLinkStatsUseCase {
+export class GetClicksByDateUseCase {
 	constructor(
 		private readonly linkRepository: LinkRepository,
 		private readonly clickRepository: ClickRepository
 	) {}
 
-	public async execute(userId: number, linkId: number): Promise<LinkStatsResponseDto> {
+	public async execute(
+		userId: number,
+		linkId: number,
+		query: ClicksByDateQueryDto
+	): Promise<ClicksByDateResponseDto> {
 		const linkIdValue = Id.create(linkId)
 		const userIdValue = Id.create(userId)
 
@@ -22,19 +26,22 @@ export class GetLinkStatsUseCase {
 			throw new ForbiddenError('You do not have permission to access this link')
 		}
 
-		const totalClicks = await this.clickRepository.countByLinkId(link.getId())
+		const { days, page, limit } = query
+		const offset = (page - 1) * limit
+
+		const allClicksByDate = await this.clickRepository.getClicksByDate(link.getId(), days)
+
+		const items = allClicksByDate.slice(offset, offset + limit)
+		const total = allClicksByDate.length
 
 		return {
-			link: {
-				id: link.getId().getValue(),
-				originalUrl: link.getOriginalUrl().getValue(),
-				shortCode: link.getShortCode().getValue(),
-				title: link.getTitle(),
-				isActive: link.getIsActive(),
-				createdAt: link.getCreatedAt().toISOString(),
-				expiresAt: link.getExpiresAt()?.toISOString() ?? null,
+			items,
+			pagination: {
+				page,
+				limit,
+				total,
+				totalPages: Math.ceil(total / limit),
 			},
-			totalClicks,
 		}
 	}
 }

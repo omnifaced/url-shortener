@@ -10,7 +10,7 @@ describe('DeleteLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,
@@ -49,7 +49,7 @@ describe('DeleteLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,

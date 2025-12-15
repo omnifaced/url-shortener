@@ -10,7 +10,7 @@ describe('GetLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'My Link',
 			isActive: true,
@@ -28,7 +28,7 @@ describe('GetLinkUseCase', () => {
 		const result = await useCase.execute(10, 1)
 
 		assert.strictEqual(result.id, 1)
-		assert.strictEqual(result.originalUrl, 'https://example.com')
+		assert.strictEqual(result.originalUrl, 'https://github.com/omnifaced')
 		assert.strictEqual(result.shortCode, 'abc123')
 		assert.strictEqual(result.title, 'My Link')
 		assert.strictEqual(result.isActive, true)
@@ -51,7 +51,7 @@ describe('GetLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,
@@ -76,7 +76,7 @@ describe('GetLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Test',
 			isActive: true,

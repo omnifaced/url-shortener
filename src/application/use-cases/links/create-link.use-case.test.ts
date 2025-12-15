@@ -15,7 +15,7 @@ describe('CreateLinkUseCase', () => {
 		const savedLink = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: mockShortCode,
 			title: null,
 			isActive: true,
@@ -31,11 +31,11 @@ describe('CreateLinkUseCase', () => {
 		const useCase = new CreateLinkUseCase(mockLinkRepository, mockShortCodeService)
 
 		const result = await useCase.execute(10, {
-			originalUrl: 'https://example.com',
+			originalUrl: 'https://github.com/omnifaced',
 		})
 
 		assert.strictEqual(result.id, 1)
-		assert.strictEqual(result.originalUrl, 'https://example.com')
+		assert.strictEqual(result.originalUrl, 'https://github.com/omnifaced')
 		assert.strictEqual(result.shortCode, 'abc123')
 		assert.strictEqual(result.title, null)
 		assert.strictEqual(result.isActive, true)
@@ -53,7 +53,7 @@ describe('CreateLinkUseCase', () => {
 		const savedLink = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: mockShortCode,
 			title: 'My Link',
 			isActive: true,
@@ -68,7 +68,7 @@ describe('CreateLinkUseCase', () => {
 		const useCase = new CreateLinkUseCase(mockLinkRepository, mockShortCodeService)
 
 		const result = await useCase.execute(10, {
-			originalUrl: 'https://example.com',
+			originalUrl: 'https://github.com/omnifaced',
 			title: 'My Link',
 		})
 
@@ -78,6 +78,7 @@ describe('CreateLinkUseCase', () => {
 	test('should create link with expiresAt', async () => {
 		const mockShortCode = ShortCode.create('abc123')
 		const expiresAt = new Date('2025-12-31')
+		const expiresAtString = expiresAt.toISOString()
 
 		const generateUniqueCodeMock = mock.fn(async () => mockShortCode)
 		const mockShortCodeService: ShortCodeService = {
@@ -87,7 +88,7 @@ describe('CreateLinkUseCase', () => {
 		const savedLink = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: mockShortCode,
 			title: null,
 			isActive: true,
@@ -102,8 +103,8 @@ describe('CreateLinkUseCase', () => {
 		const useCase = new CreateLinkUseCase(mockLinkRepository, mockShortCodeService)
 
 		const result = await useCase.execute(10, {
-			originalUrl: 'https://example.com',
-			expiresAt,
+			originalUrl: 'https://github.com/omnifaced',
+			expiresAt: expiresAtString,
 		})
 
 		assert.strictEqual(result.expiresAt, expiresAt.toISOString())

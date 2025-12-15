@@ -3,11 +3,13 @@
 export type {
 	ClickRepository,
 	ClicksByDate,
-	TopReferer,
 	LinkClickCount,
+	PaginatedClicks,
+	PaginatedReferers,
+	TopReferer,
 } from './click.repository'
 
-export type { LinkRepository, LinkListOptions } from './link.repository'
+export type { LinkListOptions, LinkRepository, LinkWithClickCount } from './link.repository'
 export type { RefreshTokenRepository } from './refresh-token.repository'
 export type { UserRepository } from './user.repository'
 

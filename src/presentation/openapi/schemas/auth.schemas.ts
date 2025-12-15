@@ -1,12 +1,11 @@
 import {
 	authResponseSchema,
-	clientErrorResponseSchema,
+	errorResponseSchema,
 	loginSchema,
 	messageResponseSchema,
 	refreshResponseSchema,
 	refreshSchema,
 	registerSchema,
-	serverErrorResponseSchema,
 } from '../../../application'
 
 import { createRoute } from '@hono/zod-openapi'
@@ -37,7 +36,7 @@ export const registerRoute = createRoute({
 		[HTTP_STATUS.BAD_REQUEST]: {
 			content: {
 				'application/json': {
-					schema: clientErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Bad request - username already exists',
@@ -45,7 +44,7 @@ export const registerRoute = createRoute({
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
 			content: {
 				'application/json': {
-					schema: serverErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Internal server error',
@@ -78,7 +77,7 @@ export const loginRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: clientErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Invalid credentials',
@@ -86,7 +85,7 @@ export const loginRoute = createRoute({
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
 			content: {
 				'application/json': {
-					schema: serverErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Internal server error',
@@ -119,7 +118,7 @@ export const refreshRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: clientErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Invalid or expired refresh token',
@@ -127,7 +126,7 @@ export const refreshRoute = createRoute({
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
 			content: {
 				'application/json': {
-					schema: serverErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Internal server error',
@@ -161,7 +160,7 @@ export const logoutRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: clientErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -169,7 +168,7 @@ export const logoutRoute = createRoute({
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
 			content: {
 				'application/json': {
-					schema: serverErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Internal server error',
@@ -194,7 +193,7 @@ export const logoutAllRoute = createRoute({
 		[HTTP_STATUS.UNAUTHORIZED]: {
 			content: {
 				'application/json': {
-					schema: clientErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Unauthorized',
@@ -202,7 +201,7 @@ export const logoutAllRoute = createRoute({
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
 			content: {
 				'application/json': {
-					schema: serverErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Internal server error',

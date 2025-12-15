@@ -13,7 +13,6 @@ import { hasCertificates } from '../../shared'
 import { swaggerUI } from '@hono/swagger-ui'
 import type { Container } from '../../di'
 import { cors } from 'hono/cors'
-import { csrf } from 'hono/csrf'
 
 export function createApp(container: Container): OpenAPIHono {
 	const app = new OpenAPIHono()
@@ -23,7 +22,6 @@ export function createApp(container: Container): OpenAPIHono {
 	app.use('*', metricsMiddleware)
 	app.use('*', structuredLogger)
 	app.use('*', createRateLimiter(container.redis))
-	app.use('*', csrf())
 
 	app.use('/favicon.ico', serveStatic({ path: './assets/favicon.ico' }))
 
@@ -31,7 +29,7 @@ export function createApp(container: Container): OpenAPIHono {
 		openapi: '3.1.0',
 		info: {
 			title: 'URL Shortener API',
-			version: '1.0.0',
+			version: '2.0.0',
 			description: 'API for shortening URLs with authentication and analytics',
 		},
 		servers: [

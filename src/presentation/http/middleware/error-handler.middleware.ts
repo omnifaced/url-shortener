@@ -36,10 +36,8 @@ export async function errorHandler(err: Error, c: Context) {
 		return c.json(
 			{
 				error: {
-					message: code,
-					details: {
-						message: err.message,
-					},
+					code: code.toUpperCase().replace(/ /g, '_'),
+					message: err.message || code,
 				},
 			},
 			err.status as never
@@ -52,10 +50,8 @@ export async function errorHandler(err: Error, c: Context) {
 		return c.json(
 			{
 				error: {
-					message: err.code,
-					details: {
-						message: err.message,
-					},
+					code: err.code,
+					message: err.message,
 				},
 			},
 			statusCode as never
@@ -66,9 +62,9 @@ export async function errorHandler(err: Error, c: Context) {
 		return c.json(
 			{
 				error: {
-					message: 'VALIDATION_ERROR',
+					code: 'VALIDATION_ERROR',
+					message: 'Validation error',
 					details: {
-						message: 'Validation error',
 						issues: err.issues,
 					},
 				},
@@ -88,11 +84,13 @@ export async function errorHandler(err: Error, c: Context) {
 	return c.json(
 		{
 			error: {
-				message: 'INTERNAL_SERVER_ERROR',
-				details: {
-					message: 'Internal server error',
-					...(traceId && { traceId }),
-				},
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'Internal server error',
+				...(traceId && {
+					details: {
+						traceId,
+					},
+				}),
 			},
 		},
 		HTTP_STATUS.INTERNAL_SERVER_ERROR

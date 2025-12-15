@@ -12,20 +12,22 @@ import {
 	type QrPort,
 	type UserAgentParserPort,
 	type TokenBlacklistPort,
-	RegisterUseCase,
-	LoginUseCase,
-	RefreshUseCase,
-	LogoutUseCase,
-	LogoutAllUseCase,
 	CreateLinkUseCase,
-	GetLinkUseCase,
-	ListLinksUseCase,
-	UpdateLinkUseCase,
 	DeleteLinkUseCase,
 	GenerateQrUseCase,
+	GetClicksByDateUseCase,
+	GetLinkClicksUseCase,
 	GetLinkStatsUseCase,
-	GetOverviewUseCase,
+	GetLinkUseCase,
+	ListAnalyticsLinksUseCase,
+	ListLinksUseCase,
+	LoginUseCase,
+	LogoutAllUseCase,
+	LogoutUseCase,
 	RedirectUseCase,
+	RefreshUseCase,
+	RegisterUseCase,
+	UpdateLinkUseCase,
 } from '../application'
 
 import {
@@ -86,8 +88,10 @@ export interface Container {
 	deleteLinkUseCase: DeleteLinkUseCase
 	generateQrUseCase: GenerateQrUseCase
 
+	getClicksByDateUseCase: GetClicksByDateUseCase
+	getLinkClicksUseCase: GetLinkClicksUseCase
 	getLinkStatsUseCase: GetLinkStatsUseCase
-	getOverviewUseCase: GetOverviewUseCase
+	listAnalyticsLinksUseCase: ListAnalyticsLinksUseCase
 
 	redirectUseCase: RedirectUseCase
 }
@@ -172,9 +176,13 @@ export async function createContainer(config: Config): Promise<Container> {
 
 	const generateQrUseCase = new GenerateQrUseCase(linkRepository, qrPort, baseUrl)
 
+	const getClicksByDateUseCase = new GetClicksByDateUseCase(linkRepository, clickRepository)
+
+	const getLinkClicksUseCase = new GetLinkClicksUseCase(linkRepository, clickRepository)
+
 	const getLinkStatsUseCase = new GetLinkStatsUseCase(linkRepository, clickRepository)
 
-	const getOverviewUseCase = new GetOverviewUseCase(linkRepository, clickRepository)
+	const listAnalyticsLinksUseCase = new ListAnalyticsLinksUseCase(linkRepository)
 
 	const redirectUseCase = new RedirectUseCase(linkRepository, clickRepository, userAgentParserPort)
 
@@ -204,8 +212,10 @@ export async function createContainer(config: Config): Promise<Container> {
 		updateLinkUseCase,
 		deleteLinkUseCase,
 		generateQrUseCase,
+		getClicksByDateUseCase,
+		getLinkClicksUseCase,
 		getLinkStatsUseCase,
-		getOverviewUseCase,
+		listAnalyticsLinksUseCase,
 		redirectUseCase,
 	}
 }

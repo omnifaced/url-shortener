@@ -43,7 +43,7 @@ describe('link.dto', () => {
 
 			const result = createLinkSchema.parse(data)
 			assert.strictEqual(result.originalUrl, data.originalUrl)
-			assert.ok(result.expiresAt instanceof Date)
+			assert.strictEqual(result.expiresAt, futureDate)
 		})
 
 		it('should fail when originalUrl is not a valid URL', () => {
@@ -84,10 +84,8 @@ describe('link.dto', () => {
 			assert.deepStrictEqual(result, data)
 		})
 
-		it('should parse update with null title', () => {
-			const data = {
-				title: null,
-			}
+		it('should parse update without title field', () => {
+			const data = {}
 
 			const result = updateLinkSchema.parse(data)
 			assert.deepStrictEqual(result, data)

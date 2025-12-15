@@ -71,9 +71,9 @@ describe('certificates', () => {
 		})
 
 		test('should construct URL with correct format', () => {
-			const result = getBaseUrl('example.com', 8080, '/nonexistent/cert.pem', '/nonexistent/key.pem')
+			const result = getBaseUrl('github.com/omnifaced', 8080, '/nonexistent/cert.pem', '/nonexistent/key.pem')
 
-			assert.strictEqual(result, 'http://example.com:8080')
+			assert.strictEqual(result, 'http://github.com/omnifaced:8080')
 		})
 	})
 })

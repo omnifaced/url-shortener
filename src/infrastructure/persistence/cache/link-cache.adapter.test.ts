@@ -10,7 +10,7 @@ describe('LinkCacheAdapter', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(1),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Test',
 			isActive: true,
@@ -24,7 +24,7 @@ describe('LinkCacheAdapter', () => {
 
 		assert.ok(cached)
 		assert.strictEqual(cached.id, 1)
-		assert.strictEqual(cached.originalUrl, 'https://example.com')
+		assert.strictEqual(cached.originalUrl, 'https://github.com/omnifaced')
 		assert.strictEqual(cached.isActive, true)
 		assert.strictEqual(cached.expiresAt, null)
 	})
@@ -43,7 +43,7 @@ describe('LinkCacheAdapter', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(1),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Test',
 			isActive: true,
@@ -64,7 +64,7 @@ describe('LinkCacheAdapter', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(1),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Test',
 			isActive: true,
@@ -85,7 +85,7 @@ describe('LinkCacheAdapter', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(1),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Test',
 			isActive: false,

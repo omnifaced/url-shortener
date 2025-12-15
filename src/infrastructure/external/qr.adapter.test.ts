@@ -6,7 +6,7 @@ import { QrAdapter } from './qr.adapter'
 describe('QrAdapter', () => {
 	test('should generate QR code', async () => {
 		const adapter = new QrAdapter()
-		const url = 'https://example.com'
+		const url = 'https://github.com/omnifaced'
 
 		const qrCodeSvg = await adapter.generate(url, {
 			format: 'svg',

@@ -10,6 +10,8 @@ import {
 	type TopReferer,
 	type LinkClickCount,
 	type DeviceInfo,
+	type PaginatedClicks,
+	type PaginatedReferers,
 } from '../../../../domain'
 
 import { eq, sql, desc } from 'drizzle-orm'
@@ -64,7 +66,9 @@ export class ClickRepositoryImpl implements ClickRepository {
 				count: sql<number>`count(*)`,
 			})
 			.from(schema.clicks)
-			.where(sql`${schema.clicks.linkId} = ${linkId.getValue()} AND ${schema.clicks.clickedAt} >= ${startDate}`)
+			.where(
+				sql`${schema.clicks.linkId} = ${linkId.getValue()} AND ${schema.clicks.clickedAt} >= ${startDate.toISOString()}`
+			)
 			.groupBy(sql`DATE(${schema.clicks.clickedAt})`)
 			.orderBy(sql`DATE(${schema.clicks.clickedAt})`)
 
@@ -118,6 +122,55 @@ export class ClickRepositoryImpl implements ClickRepository {
 			linkId: Id.create(row.linkId),
 			count: Number(row.count),
 		}))
+	}
+
+	public async findByLinkIdPaginated(linkId: Id, limit: number, offset: number): Promise<PaginatedClicks> {
+		const [items, totalResult] = await Promise.all([
+			this.db
+				.select()
+				.from(schema.clicks)
+				.where(eq(schema.clicks.linkId, linkId.getValue()))
+				.orderBy(desc(schema.clicks.clickedAt))
+				.limit(limit)
+				.offset(offset),
+			this.db
+				.select({ count: sql<number>`count(*)` })
+				.from(schema.clicks)
+				.where(eq(schema.clicks.linkId, linkId.getValue())),
+		])
+
+		return {
+			items: items.map((row) => this.toDomain(row)),
+			total: Number(totalResult[0].count),
+		}
+	}
+
+	public async getTopReferersPaginated(linkId: Id, limit: number, offset: number): Promise<PaginatedReferers> {
+		const [items, totalResult] = await Promise.all([
+			this.db
+				.select({
+					referer: schema.clicks.referer,
+					count: sql<number>`count(*)`,
+				})
+				.from(schema.clicks)
+				.where(eq(schema.clicks.linkId, linkId.getValue()))
+				.groupBy(schema.clicks.referer)
+				.orderBy(desc(sql`count(*)`))
+				.limit(limit)
+				.offset(offset),
+			this.db
+				.select({ count: sql<number>`count(DISTINCT ${schema.clicks.referer})` })
+				.from(schema.clicks)
+				.where(eq(schema.clicks.linkId, linkId.getValue())),
+		])
+
+		return {
+			items: items.map((row) => ({
+				referer: row.referer,
+				count: Number(row.count),
+			})),
+			total: Number(totalResult[0].count),
+		}
 	}
 
 	private toDomain(row: typeof schema.clicks.$inferSelect): Click {

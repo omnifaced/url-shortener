@@ -29,6 +29,7 @@ describe('validationErrorWrapper', () => {
 		const json = await response.json()
 
 		assert.strictEqual(response.status, HTTP_STATUS.BAD_REQUEST)
+		assert.strictEqual(json.error.code, 'VALIDATION_ERROR')
 		assert.strictEqual(json.error.message, 'Validation error')
 	})
 })

@@ -17,7 +17,7 @@ describe('Links Controller', () => {
 				execute: mock.fn(async () => ({
 					id: 1,
 					shortCode: 'abc123',
-					originalUrl: 'https://example.com',
+					originalUrl: 'https://github.com/omnifaced',
 					clickCount: 0,
 					createdAt: new Date(),
 				})),
@@ -28,7 +28,7 @@ describe('Links Controller', () => {
 						{
 							id: 1,
 							shortCode: 'abc123',
-							originalUrl: 'https://example.com',
+							originalUrl: 'https://github.com/omnifaced',
 							clickCount: 5,
 							createdAt: new Date(),
 						},
@@ -42,7 +42,7 @@ describe('Links Controller', () => {
 				execute: mock.fn(async () => ({
 					id: 1,
 					shortCode: 'abc123',
-					originalUrl: 'https://example.com',
+					originalUrl: 'https://github.com/omnifaced',
 					clickCount: 10,
 					createdAt: new Date(),
 				})),
@@ -81,7 +81,7 @@ describe('Links Controller', () => {
 		const res = await app.request('/api/links', {
 			method: 'POST',
 			body: JSON.stringify({
-				originalUrl: 'https://example.com',
+				originalUrl: 'https://github.com/omnifaced',
 			}),
 			headers: new Headers({
 				'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ describe('Links Controller', () => {
 
 		assert.strictEqual(data.success, true)
 		assert.strictEqual(data.data.shortCode, 'abc123')
-		assert.strictEqual(data.data.originalUrl, 'https://example.com')
+		assert.strictEqual(data.data.originalUrl, 'https://github.com/omnifaced')
 	})
 
 	test('GET /api/links - should list all links', async () => {
@@ -236,7 +236,7 @@ describe('Links Controller', () => {
 		const res = await app.request('/api/links', {
 			method: 'POST',
 			body: JSON.stringify({
-				originalUrl: 'https://example.com',
+				originalUrl: 'https://github.com/omnifaced',
 			}),
 			headers: new Headers({
 				'Content-Type': 'application/json',

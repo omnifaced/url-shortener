@@ -1,19 +1,19 @@
+import { paginationSchema, type PaginationDto } from './common.dto'
 import { z } from '@hono/zod-openapi'
 
 export const createLinkSchema = z.object({
 	originalUrl: z.url(),
 	title: z.string().max(255).optional(),
-	expiresAt: z
-		.string()
-		.pipe(z.coerce.date())
-		.refine((date) => date > new Date(), {
+	expiresAt: z.iso
+		.datetime()
+		.refine((dateStr) => new Date(dateStr) > new Date(), {
 			message: 'Expiration date must be in the future',
 		})
 		.optional(),
 })
 
 export const updateLinkSchema = z.object({
-	title: z.string().max(255).optional().nullable(),
+	title: z.string().max(255).optional(),
 	isActive: z.boolean().optional(),
 })
 
@@ -41,8 +41,8 @@ export const linkDataSchema = z.object({
 	shortCode: z.string().openapi({ example: 'abc123' }),
 	title: z.string().nullable().openapi({ example: 'My Example Link' }),
 	isActive: z.boolean().openapi({ example: true }),
-	createdAt: z.string().openapi({ example: '2025-01-01T00:00:00Z' }),
-	expiresAt: z.string().nullable().openapi({ example: '2025-12-31T23:59:59Z' }),
+	createdAt: z.iso.datetime().openapi({ example: '2025-01-01T00:00:00Z' }),
+	expiresAt: z.iso.datetime().nullable().openapi({ example: '2025-12-31T23:59:59Z' }),
 })
 
 export const linkResponseSchema = z.object({
@@ -54,12 +54,7 @@ export const listLinksResponseSchema = z.object({
 	success: z.literal(true),
 	data: z.object({
 		links: z.array(linkDataSchema),
-		pagination: z.object({
-			page: z.number().openapi({ example: 1 }),
-			limit: z.number().openapi({ example: 10 }),
-			total: z.number().openapi({ example: 100 }),
-			totalPages: z.number().openapi({ example: 10 }),
-		}),
+		pagination: paginationSchema,
 	}),
 })
 
@@ -71,10 +66,5 @@ export type LinkResponseDto = z.infer<typeof linkDataSchema>
 
 export interface ListLinksResponseDto {
 	links: LinkResponseDto[]
-	pagination: {
-		page: number
-		limit: number
-		total: number
-		totalPages: number
-	}
+	pagination: PaginationDto
 }

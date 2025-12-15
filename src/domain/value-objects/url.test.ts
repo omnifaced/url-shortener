@@ -6,29 +6,29 @@ import { Url } from './url'
 describe('Url', () => {
 	describe('create', () => {
 		test('should create Url with valid HTTP URL', () => {
-			const url = Url.create('http://example.com')
-			assert.strictEqual(url.getValue(), 'http://example.com')
+			const url = Url.create('https://github.com/omnifaced')
+			assert.strictEqual(url.getValue(), 'https://github.com/omnifaced')
 		})
 
 		test('should create Url with valid HTTPS URL', () => {
-			const url = Url.create('https://example.com')
-			assert.strictEqual(url.getValue(), 'https://example.com')
+			const url = Url.create('https://github.com/omnifaced')
+			assert.strictEqual(url.getValue(), 'https://github.com/omnifaced')
 		})
 
 		test('should create Url with path and query params', () => {
-			const urlString = 'https://example.com/path?query=param'
+			const urlString = 'https://github.com/omnifaced/path?query=param'
 			const url = Url.create(urlString)
 			assert.strictEqual(url.getValue(), urlString)
 		})
 
 		test('should create Url with port', () => {
-			const urlString = 'https://example.com:8080'
+			const urlString = 'https://github.com/omnifaced:8080'
 			const url = Url.create(urlString)
 			assert.strictEqual(url.getValue(), urlString)
 		})
 
 		test('should create Url with fragment', () => {
-			const urlString = 'https://example.com#section'
+			const urlString = 'https://github.com/omnifaced#section'
 			const url = Url.create(urlString)
 			assert.strictEqual(url.getValue(), urlString)
 		})
@@ -47,14 +47,14 @@ describe('Url', () => {
 
 		test('should throw error for URL without protocol', () => {
 			assert.throws(() => {
-				Url.create('example.com')
+				Url.create('github.com/omnifaced')
 			}, /Invalid URL format/)
 		})
 	})
 
 	describe('getValue', () => {
 		test('should return correct URL string', () => {
-			const urlString = 'https://example.com/path'
+			const urlString = 'https://github.com/omnifaced/path'
 			const url = Url.create(urlString)
 			assert.strictEqual(url.getValue(), urlString)
 		})

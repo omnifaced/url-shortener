@@ -10,7 +10,7 @@ describe('Link', () => {
 			const props = {
 				id: Id.create(1),
 				userId: Id.create(1),
-				originalUrl: Url.create('https://example.com'),
+				originalUrl: Url.create('https://github.com/omnifaced'),
 				shortCode: ShortCode.create('abc123'),
 				title: 'Test Link',
 				isActive: true,
@@ -22,7 +22,7 @@ describe('Link', () => {
 
 			assert.strictEqual(link.getId().getValue(), 1)
 			assert.strictEqual(link.getUserId().getValue(), 1)
-			assert.strictEqual(link.getOriginalUrl().getValue(), 'https://example.com')
+			assert.strictEqual(link.getOriginalUrl().getValue(), 'https://github.com/omnifaced')
 			assert.strictEqual(link.getShortCode().getValue(), 'abc123')
 			assert.strictEqual(link.getTitle(), 'Test Link')
 			assert.strictEqual(link.getIsActive(), true)
@@ -33,13 +33,13 @@ describe('Link', () => {
 	describe('createNew', () => {
 		test('should create new Link with required fields', () => {
 			const userId = Id.create(1)
-			const originalUrl = Url.create('https://example.com')
+			const originalUrl = Url.create('https://github.com/omnifaced')
 			const shortCode = ShortCode.create('abc123')
 
 			const link = Link.createNew(userId, originalUrl, shortCode)
 
 			assert.strictEqual(link.getUserId().getValue(), 1)
-			assert.strictEqual(link.getOriginalUrl().getValue(), 'https://example.com')
+			assert.strictEqual(link.getOriginalUrl().getValue(), 'https://github.com/omnifaced')
 			assert.strictEqual(link.getShortCode().getValue(), 'abc123')
 			assert.strictEqual(link.getTitle(), null)
 			assert.strictEqual(link.getIsActive(), true)
@@ -48,7 +48,7 @@ describe('Link', () => {
 
 		test('should create new Link with title', () => {
 			const userId = Id.create(1)
-			const originalUrl = Url.create('https://example.com')
+			const originalUrl = Url.create('https://github.com/omnifaced')
 			const shortCode = ShortCode.create('abc123')
 			const title = 'My Link'
 
@@ -59,7 +59,7 @@ describe('Link', () => {
 
 		test('should create new Link with expiresAt', () => {
 			const userId = Id.create(1)
-			const originalUrl = Url.create('https://example.com')
+			const originalUrl = Url.create('https://github.com/omnifaced')
 			const shortCode = ShortCode.create('abc123')
 			const expiresAt = new Date('2025-12-31')
 
@@ -70,7 +70,7 @@ describe('Link', () => {
 
 		test('should create new Link with both title and expiresAt', () => {
 			const userId = Id.create(1)
-			const originalUrl = Url.create('https://example.com')
+			const originalUrl = Url.create('https://github.com/omnifaced')
 			const shortCode = ShortCode.create('abc123')
 			const title = 'My Link'
 			const expiresAt = new Date('2025-12-31')
@@ -84,7 +84,11 @@ describe('Link', () => {
 
 	describe('isExpired', () => {
 		test('should return false when no expiresAt', () => {
-			const link = Link.createNew(Id.create(1), Url.create('https://example.com'), ShortCode.create('abc123'))
+			const link = Link.createNew(
+				Id.create(1),
+				Url.create('https://github.com/omnifaced'),
+				ShortCode.create('abc123')
+			)
 
 			assert.strictEqual(link.isExpired(), false)
 		})
@@ -95,7 +99,7 @@ describe('Link', () => {
 
 			const link = Link.createNew(
 				Id.create(1),
-				Url.create('https://example.com'),
+				Url.create('https://github.com/omnifaced'),
 				ShortCode.create('abc123'),
 				undefined,
 				futureDate
@@ -109,7 +113,7 @@ describe('Link', () => {
 
 			const link = Link.createNew(
 				Id.create(1),
-				Url.create('https://example.com'),
+				Url.create('https://github.com/omnifaced'),
 				ShortCode.create('abc123'),
 				undefined,
 				pastDate
@@ -121,13 +125,21 @@ describe('Link', () => {
 
 	describe('canBeAccessed', () => {
 		test('should return true when active and not expired', () => {
-			const link = Link.createNew(Id.create(1), Url.create('https://example.com'), ShortCode.create('abc123'))
+			const link = Link.createNew(
+				Id.create(1),
+				Url.create('https://github.com/omnifaced'),
+				ShortCode.create('abc123')
+			)
 
 			assert.strictEqual(link.canBeAccessed(), true)
 		})
 
 		test('should return false when not active', () => {
-			const link = Link.createNew(Id.create(1), Url.create('https://example.com'), ShortCode.create('abc123'))
+			const link = Link.createNew(
+				Id.create(1),
+				Url.create('https://github.com/omnifaced'),
+				ShortCode.create('abc123')
+			)
 
 			link.deactivate()
 
@@ -139,7 +151,7 @@ describe('Link', () => {
 
 			const link = Link.createNew(
 				Id.create(1),
-				Url.create('https://example.com'),
+				Url.create('https://github.com/omnifaced'),
 				ShortCode.create('abc123'),
 				undefined,
 				pastDate
@@ -153,7 +165,7 @@ describe('Link', () => {
 
 			const link = Link.createNew(
 				Id.create(1),
-				Url.create('https://example.com'),
+				Url.create('https://github.com/omnifaced'),
 				ShortCode.create('abc123'),
 				undefined,
 				pastDate
@@ -167,7 +179,11 @@ describe('Link', () => {
 
 	describe('deactivate', () => {
 		test('should deactivate link', () => {
-			const link = Link.createNew(Id.create(1), Url.create('https://example.com'), ShortCode.create('abc123'))
+			const link = Link.createNew(
+				Id.create(1),
+				Url.create('https://github.com/omnifaced'),
+				ShortCode.create('abc123')
+			)
 
 			link.deactivate()
 
@@ -177,7 +193,11 @@ describe('Link', () => {
 
 	describe('activate', () => {
 		test('should activate link', () => {
-			const link = Link.createNew(Id.create(1), Url.create('https://example.com'), ShortCode.create('abc123'))
+			const link = Link.createNew(
+				Id.create(1),
+				Url.create('https://github.com/omnifaced'),
+				ShortCode.create('abc123')
+			)
 
 			link.deactivate()
 			link.activate()
@@ -188,7 +208,11 @@ describe('Link', () => {
 
 	describe('updateTitle', () => {
 		test('should update title', () => {
-			const link = Link.createNew(Id.create(1), Url.create('https://example.com'), ShortCode.create('abc123'))
+			const link = Link.createNew(
+				Id.create(1),
+				Url.create('https://github.com/omnifaced'),
+				ShortCode.create('abc123')
+			)
 
 			link.updateTitle('New Title')
 
@@ -198,7 +222,7 @@ describe('Link', () => {
 		test('should set title to null', () => {
 			const link = Link.createNew(
 				Id.create(1),
-				Url.create('https://example.com'),
+				Url.create('https://github.com/omnifaced'),
 				ShortCode.create('abc123'),
 				'Old Title'
 			)

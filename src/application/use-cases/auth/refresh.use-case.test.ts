@@ -1,8 +1,8 @@
 import * as assert from 'node:assert'
 
 import { Id, User, Username, RefreshToken, type UserRepository, type RefreshTokenRepository } from '../../../domain'
-import type { JwtPort, TokenBlacklistPort } from '../../ports'
 import { UnauthorizedError, NotFoundError } from '../../errors'
+import type { JwtPort, TokenBlacklistPort } from '../../ports'
 import { RefreshUseCase } from './refresh.use-case'
 import { describe, test, mock } from 'node:test'
 

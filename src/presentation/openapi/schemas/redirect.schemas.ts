@@ -1,4 +1,4 @@
-import { clientErrorResponseSchema, serverErrorResponseSchema } from '../../../application'
+import { errorResponseSchema } from '../../../application'
 import { createRoute } from '@hono/zod-openapi'
 import { HTTP_STATUS } from '../../../shared'
 import { z } from 'zod'
@@ -24,7 +24,7 @@ export const redirectRoute = createRoute({
 		[HTTP_STATUS.NOT_FOUND]: {
 			content: {
 				'application/json': {
-					schema: clientErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Short code not found',
@@ -32,7 +32,7 @@ export const redirectRoute = createRoute({
 		[HTTP_STATUS.GONE]: {
 			content: {
 				'application/json': {
-					schema: clientErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Link expired or inactive',
@@ -40,7 +40,7 @@ export const redirectRoute = createRoute({
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: {
 			content: {
 				'application/json': {
-					schema: serverErrorResponseSchema,
+					schema: errorResponseSchema,
 				},
 			},
 			description: 'Internal server error',

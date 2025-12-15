@@ -1,13 +1,6 @@
 import * as assert from 'node:assert/strict'
 
-import {
-	clickDetailSchema,
-	clicksByDateSchema,
-	topRefererSchema,
-	linkStatsResponseSchema,
-	overviewResponseSchema,
-} from './analytics.dto'
-
+import { clickDetailSchema, clicksByDateSchema, linkStatsResponseSchema, topRefererSchema } from './analytics.dto'
 import { describe, it } from 'node:test'
 
 describe('analytics.dto', () => {
@@ -18,7 +11,7 @@ describe('analytics.dto', () => {
 				clickedAt: '2025-01-15T10:30:00Z',
 				ip: '192.168.1.1',
 				userAgent: 'Mozilla/5.0...',
-				referer: 'https://google.com',
+				referer: 'https://github.com/omnifaced',
 			}
 
 			const result = clickDetailSchema.parse(data)
@@ -74,7 +67,7 @@ describe('analytics.dto', () => {
 	describe('topRefererSchema', () => {
 		it('should parse valid referer', () => {
 			const data = {
-				referer: 'https://google.com',
+				referer: 'https://github.com/omnifaced',
 				count: 42,
 			}
 
@@ -94,7 +87,7 @@ describe('analytics.dto', () => {
 
 		it('should fail when count is missing', () => {
 			const data = {
-				referer: 'https://google.com',
+				referer: 'https://github.com/omnifaced',
 			}
 
 			assert.throws(() => topRefererSchema.parse(data))
@@ -116,27 +109,6 @@ describe('analytics.dto', () => {
 						expiresAt: '2025-12-31T23:59:59Z',
 					},
 					totalClicks: 150,
-					recentClicks: [
-						{
-							id: 1,
-							clickedAt: '2025-01-15T10:30:00Z',
-							ip: '192.168.1.1',
-							userAgent: 'Mozilla/5.0...',
-							referer: 'https://google.com',
-						},
-					],
-					clicksByDate: [
-						{
-							date: '2025-01-15',
-							count: 10,
-						},
-					],
-					topReferers: [
-						{
-							referer: 'https://google.com',
-							count: 42,
-						},
-					],
 				},
 			}
 
@@ -158,9 +130,6 @@ describe('analytics.dto', () => {
 						expiresAt: null,
 					},
 					totalClicks: 0,
-					recentClicks: [],
-					clicksByDate: [],
-					topReferers: [],
 				},
 			}
 
@@ -182,86 +151,11 @@ describe('analytics.dto', () => {
 						expiresAt: null,
 					},
 					totalClicks: 0,
-					recentClicks: [],
 					clicksByDate: [],
-					topReferers: [],
 				},
 			}
 
 			assert.throws(() => linkStatsResponseSchema.parse(data))
-		})
-	})
-
-	describe('overviewResponseSchema', () => {
-		it('should parse valid overview response', () => {
-			const data = {
-				success: true,
-				data: {
-					totalLinks: 25,
-					totalClicks: 500,
-					topLinks: [
-						{
-							id: 1,
-							originalUrl: 'https://github.com/omnifaced',
-							shortCode: 'abc123',
-							title: 'My Link',
-							clickCount: 42,
-						},
-					],
-				},
-			}
-
-			const result = overviewResponseSchema.parse(data)
-			assert.deepStrictEqual(result, data)
-		})
-
-		it('should parse overview with empty topLinks', () => {
-			const data = {
-				success: true,
-				data: {
-					totalLinks: 0,
-					totalClicks: 0,
-					topLinks: [],
-				},
-			}
-
-			const result = overviewResponseSchema.parse(data)
-			assert.deepStrictEqual(result, data)
-		})
-
-		it('should parse overview with null title in topLinks', () => {
-			const data = {
-				success: true,
-				data: {
-					totalLinks: 1,
-					totalClicks: 10,
-					topLinks: [
-						{
-							id: 1,
-							originalUrl: 'https://github.com/omnifaced',
-							shortCode: 'abc123',
-							title: null,
-							clickCount: 10,
-						},
-					],
-				},
-			}
-
-			const result = overviewResponseSchema.parse(data)
-			assert.deepStrictEqual(result, data)
-		})
-
-		it('should fail when totalLinks is not a number', () => {
-			const data = {
-				success: true,
-				data: {
-					totalLinks: '25',
-					totalClicks: 500,
-					topLinks: [],
-				},
-			}
-
-			assert.throws(() => overviewResponseSchema.parse(data))
 		})
 	})
 })

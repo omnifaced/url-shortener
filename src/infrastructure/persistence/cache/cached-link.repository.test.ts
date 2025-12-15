@@ -11,7 +11,7 @@ describe('CachedLinkRepository', () => {
 		return Link.create({
 			id: Id.create(id),
 			userId: Id.create(1),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create(shortCode),
 			title: 'Test',
 			isActive: true,
@@ -42,6 +42,7 @@ describe('CachedLinkRepository', () => {
 				return null
 			},
 			findByUserId: async () => Array.from(links.values()),
+			findByUserIdWithClickCount: async () => [],
 			save: async (link: Link) => {
 				links.set(link.getId().getValue(), link)
 				return link
@@ -110,7 +111,7 @@ describe('CachedLinkRepository', () => {
 		mockCache.set('abc123', {
 			id: 999,
 			userId: 999,
-			originalUrl: 'https://example.com',
+			originalUrl: 'https://github.com/omnifaced',
 			shortCode: 'asdas',
 			title: null,
 			isActive: true,
@@ -241,5 +242,19 @@ describe('CachedLinkRepository', () => {
 		const cachedRepo = new CachedLinkRepository(mockRepository, mockCache)
 
 		assert.ok(cachedRepo)
+	})
+
+	test('should find by user id with click count', async () => {
+		const mockCache = createMockCache()
+		const mockRepo = createMockRepository()
+		const link = createMockLink(1, 'abc123')
+
+		await mockRepo.save(link)
+
+		const repo = new CachedLinkRepository(mockRepo, mockCache)
+
+		const result = await repo.findByUserIdWithClickCount(Id.create(1), 'top', { limit: 10, offset: 0 })
+
+		assert.strictEqual(result.length, 0)
 	})
 })

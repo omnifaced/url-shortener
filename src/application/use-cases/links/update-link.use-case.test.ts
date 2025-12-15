@@ -10,7 +10,7 @@ describe('UpdateLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Old Title',
 			isActive: true,
@@ -38,7 +38,7 @@ describe('UpdateLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,
@@ -64,7 +64,7 @@ describe('UpdateLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: false,
@@ -90,7 +90,7 @@ describe('UpdateLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Old Title',
 			isActive: true,
@@ -130,7 +130,7 @@ describe('UpdateLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,
@@ -154,7 +154,7 @@ describe('UpdateLinkUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: 'Test Link',
 			isActive: true,

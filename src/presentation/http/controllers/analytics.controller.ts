@@ -1,5 +1,5 @@
+import { clicksByDateRoute, linkClicksRoute, linkStatsRoute, listAnalyticsLinksRoute } from '../../openapi'
 import { createAuthMiddleware, responseMiddleware } from '../middleware'
-import { linkStatsRoute, overviewRoute } from '../../openapi'
 import { validationErrorWrapperHook } from '../hooks'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { HTTP_STATUS } from '../../../shared'
@@ -19,10 +19,11 @@ export function createAnalyticsController(container: Container): OpenAPIHono<{ V
 	router.use('/*', authMiddleware)
 	router.use('*', responseMiddleware)
 
-	router.openapi(overviewRoute, async (c) => {
+	router.openapi(listAnalyticsLinksRoute, async (c) => {
+		const query = c.req.valid('query')
 		const userId = c.get('userId')
 
-		const result = await container.getOverviewUseCase.execute(userId)
+		const result = await container.listAnalyticsLinksUseCase.execute(userId, query)
 
 		return c.json({ success: true, data: result }, HTTP_STATUS.OK)
 	})
@@ -32,6 +33,26 @@ export function createAnalyticsController(container: Container): OpenAPIHono<{ V
 		const userId = c.get('userId')
 
 		const result = await container.getLinkStatsUseCase.execute(userId, id)
+
+		return c.json({ success: true, data: result }, HTTP_STATUS.OK)
+	})
+
+	router.openapi(linkClicksRoute, async (c) => {
+		const { id } = c.req.valid('param')
+		const query = c.req.valid('query')
+		const userId = c.get('userId')
+
+		const result = await container.getLinkClicksUseCase.execute(userId, id, query)
+
+		return c.json({ success: true, data: result }, HTTP_STATUS.OK)
+	})
+
+	router.openapi(clicksByDateRoute, async (c) => {
+		const { id } = c.req.valid('param')
+		const query = c.req.valid('query')
+		const userId = c.get('userId')
+
+		const result = await container.getClicksByDateUseCase.execute(userId, id, query)
 
 		return c.json({ success: true, data: result }, HTTP_STATUS.OK)
 	})

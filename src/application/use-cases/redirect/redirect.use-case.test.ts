@@ -40,7 +40,7 @@ describe('RedirectUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,
@@ -54,9 +54,9 @@ describe('RedirectUseCase', () => {
 			device: 'Desktop',
 		})
 
-		const result = await useCase.execute('abc123', '127.0.0.1', 'Mozilla/5.0', 'https://google.com')
+		const result = await useCase.execute('abc123', '127.0.0.1', 'Mozilla/5.0', 'https://github.com/omnifaced')
 
-		assert.strictEqual(result, 'https://example.com')
+		assert.strictEqual(result, 'https://github.com/omnifaced')
 		assert.strictEqual(mocks.findByShortCode.mock.calls.length, 1)
 		assert.strictEqual(mocks.save.mock.calls.length, 1)
 		assert.strictEqual(mocks.parse.mock.calls.length, 1)
@@ -79,7 +79,7 @@ describe('RedirectUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: false,
@@ -98,7 +98,7 @@ describe('RedirectUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,
@@ -117,7 +117,7 @@ describe('RedirectUseCase', () => {
 		const link = Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
-			originalUrl: Url.create('https://example.com'),
+			originalUrl: Url.create('https://github.com/omnifaced'),
 			shortCode: ShortCode.create('abc123'),
 			title: null,
 			isActive: true,
@@ -128,7 +128,7 @@ describe('RedirectUseCase', () => {
 		const { useCase, mocks } = createTestSetup(link, { browser: 'Chrome' })
 		const result = await useCase.execute('abc123')
 
-		assert.strictEqual(result, 'https://example.com')
+		assert.strictEqual(result, 'https://github.com/omnifaced')
 		assert.strictEqual(mocks.parse.mock.calls.length, 0)
 	})
 })

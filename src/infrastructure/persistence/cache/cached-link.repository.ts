@@ -1,4 +1,12 @@
-import { Id, type Link, type LinkRepository, type LinkListOptions, type ShortCode } from '../../../domain'
+import {
+	Id,
+	type Link,
+	type LinkListOptions,
+	type LinkRepository,
+	type LinkWithClickCount,
+	type ShortCode,
+} from '../../../domain'
+
 import { cacheHitsTotal, cacheMissesTotal } from '../../../shared'
 import type { LinkCacheAdapter } from './link-cache.adapter'
 
@@ -66,5 +74,13 @@ export class CachedLinkRepository implements LinkRepository {
 
 	public async findExpiredLinks(): Promise<Link[]> {
 		return this.linkRepository.findExpiredLinks()
+	}
+
+	public async findByUserIdWithClickCount(
+		userId: Id,
+		sortBy: 'top' | 'recent',
+		options: LinkListOptions
+	): Promise<LinkWithClickCount[]> {
+		return this.linkRepository.findByUserIdWithClickCount(userId, sortBy, options)
 	}
 }

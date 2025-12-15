@@ -1,22 +1,20 @@
 import * as assert from 'node:assert/strict'
 
-import { clientErrorResponseSchema, serverErrorResponseSchema, messageResponseSchema } from './common.dto'
+import { errorResponseSchema, messageResponseSchema } from './common.dto'
 import { describe, it } from 'node:test'
 
 describe('common.dto', () => {
-	describe('clientErrorResponseSchema', () => {
-		it('should parse valid client error response', () => {
+	describe('errorResponseSchema', () => {
+		it('should parse valid error response without details', () => {
 			const data = {
 				success: false,
 				error: {
+					code: 'VALIDATION_ERROR',
 					message: 'Validation failed',
-					details: {
-						message: 'Invalid input data',
-					},
 				},
 			}
 
-			const result = clientErrorResponseSchema.parse(data)
+			const result = errorResponseSchema.parse(data)
 			assert.deepStrictEqual(result, data)
 		})
 
@@ -24,6 +22,7 @@ describe('common.dto', () => {
 			const data = {
 				success: true,
 				error: {
+					code: 'VALIDATION_ERROR',
 					message: 'Validation failed',
 					details: {
 						message: 'Invalid input data',
@@ -31,107 +30,64 @@ describe('common.dto', () => {
 				},
 			}
 
-			assert.throws(() => clientErrorResponseSchema.parse(data))
+			assert.throws(() => errorResponseSchema.parse(data))
 		})
 
-		it('should fail when error message is missing', () => {
+		it('should fail when error code is missing', () => {
 			const data = {
 				success: false,
 				error: {
-					details: {
-						message: 'Invalid input data',
-					},
+					message: 'Validation failed',
 				},
 			}
 
-			assert.throws(() => clientErrorResponseSchema.parse(data))
+			assert.throws(() => errorResponseSchema.parse(data))
 		})
 
-		it('should fail when details message is missing', () => {
+		it('should parse error with empty details', () => {
 			const data = {
 				success: false,
 				error: {
+					code: 'VALIDATION_ERROR',
 					message: 'Validation failed',
 					details: {},
 				},
 			}
 
-			assert.throws(() => clientErrorResponseSchema.parse(data))
-		})
-	})
-
-	describe('serverErrorResponseSchema', () => {
-		it('should parse valid server error response', () => {
-			const data = {
-				success: false,
-				error: {
-					message: 'Internal server error',
-					details: {
-						message: 'Database connection failed',
-						traceId: 'trace-abc123',
-					},
-				},
-			}
-
-			const result = serverErrorResponseSchema.parse(data)
+			const result = errorResponseSchema.parse(data)
 			assert.deepStrictEqual(result, data)
 		})
 
-		it('should fail when success is not false', () => {
-			const data = {
-				success: true,
-				error: {
-					message: 'Internal server error',
-					details: {
-						message: 'Database connection failed',
-						traceId: 'trace-abc123',
-					},
-				},
-			}
-
-			assert.throws(() => serverErrorResponseSchema.parse(data))
-		})
-
-		it('should fail when traceId is missing', () => {
+		it('should parse error with details containing traceId', () => {
 			const data = {
 				success: false,
 				error: {
+					code: 'INTERNAL_SERVER_ERROR',
 					message: 'Internal server error',
 					details: {
-						message: 'Database connection failed',
+						traceId: 'trace-xyz789',
 					},
 				},
 			}
 
-			assert.throws(() => serverErrorResponseSchema.parse(data))
+			const result = errorResponseSchema.parse(data)
+			assert.deepStrictEqual(result, data)
 		})
 
-		it('should fail when error message is missing', () => {
+		it('should parse error with details containing issues', () => {
 			const data = {
 				success: false,
 				error: {
+					code: 'VALIDATION_ERROR',
+					message: 'Validation error',
 					details: {
-						message: 'Database connection failed',
-						traceId: 'trace-abc123',
+						issues: [{ path: ['field'], message: 'Required' }],
 					},
 				},
 			}
 
-			assert.throws(() => serverErrorResponseSchema.parse(data))
-		})
-
-		it('should fail when details message is missing', () => {
-			const data = {
-				success: false,
-				error: {
-					message: 'Internal server error',
-					details: {
-						traceId: 'trace-abc123',
-					},
-				},
-			}
-
-			assert.throws(() => serverErrorResponseSchema.parse(data))
+			const result = errorResponseSchema.parse(data)
+			assert.deepStrictEqual(result, data)
 		})
 	})
 

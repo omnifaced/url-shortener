@@ -13,7 +13,7 @@ describe('Redirect Controller', () => {
 				certificates: { cert_path: '', key_path: '' },
 			},
 			redirectUseCase: {
-				execute: mock.fn(async () => 'https://example.com'),
+				execute: mock.fn(async () => 'https://github.com/omnifaced'),
 			},
 		} as unknown as Container
 	}
@@ -27,7 +27,7 @@ describe('Redirect Controller', () => {
 		})
 
 		assert.strictEqual(res.status, HTTP_STATUS.FOUND)
-		assert.strictEqual(res.headers.get('Location'), 'https://example.com')
+		assert.strictEqual(res.headers.get('Location'), 'https://github.com/omnifaced')
 	})
 
 	test('GET /{shortCode} - should track click with headers', async () => {
@@ -39,7 +39,7 @@ describe('Redirect Controller', () => {
 			headers: new Headers({
 				'user-agent': 'Mozilla/5.0',
 				'x-forwarded-for': '127.0.0.1',
-				referer: 'https://google.com',
+				referer: 'https://github.com/omnifaced',
 			}),
 		})
 

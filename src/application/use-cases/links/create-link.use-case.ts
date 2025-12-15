@@ -12,7 +12,13 @@ export class CreateLinkUseCase {
 		const originalUrl = Url.create(data.originalUrl)
 		const shortCode = await this.shortCodeService.generateUniqueCode()
 
-		const link = Link.createNew(Id.create(userId), originalUrl, shortCode, data.title, data.expiresAt)
+		const link = Link.createNew(
+			Id.create(userId),
+			originalUrl,
+			shortCode,
+			data.title,
+			data.expiresAt ? new Date(data.expiresAt) : undefined
+		)
 
 		const savedLink = await this.linkRepository.save(link)
 
