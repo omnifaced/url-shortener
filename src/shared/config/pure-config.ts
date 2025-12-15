@@ -1,5 +1,6 @@
 import { readdirSync, openSync, fstatSync, readFileSync, existsSync, closeSync } from 'node:fs'
 import { getRelativePath, printValidatorErrors } from './utils'
+import { createContext, runInContext } from 'node:vm'
 import { parseDocument } from 'yaml'
 import { consola } from 'consola'
 import { join } from 'node:path'
@@ -192,12 +193,13 @@ class PureConfig<T = Record<string, unknown>> {
 		keyPath: string,
 		isRequired = false
 	) {
-		const context = {
+		const context = createContext({
 			self: object,
-		}
+			env: process.env,
+		})
 
 		try {
-			const result = new Function(...Object.keys(context), `return ${expression}`)(...Object.values(context))
+			const result = runInContext(expression, context)
 
 			if (result === undefined && isRequired) {
 				throw new Error(`Expression "${expression}" returned undefined`)
@@ -205,7 +207,14 @@ class PureConfig<T = Record<string, unknown>> {
 
 			return result
 		} catch (error) {
-			if (!isRequired && error instanceof Error && error.message.includes('is not defined')) {
+			if (
+				!isRequired &&
+				error &&
+				typeof error === 'object' &&
+				'message' in error &&
+				typeof error.message === 'string' &&
+				error.message.includes('is not defined')
+			) {
 				return undefined
 			}
 
