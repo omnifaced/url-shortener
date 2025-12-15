@@ -26,7 +26,7 @@
 		"@hono/zod-validator": "^0.7.5",
 		"ajv": "^8.17.1",
 		"consola": "^3.4.2",
-		"cron": "^4.3.5",
+		"cron": "^4.4.0",
 		"drizzle-orm": "^0.45.1",
 		"hono": "^4.10.7",
 		"hono-rate-limiter": "^0.4.2",
