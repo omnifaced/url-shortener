@@ -29,7 +29,7 @@ export function createApp(container: Container): OpenAPIHono {
 		openapi: '3.1.0',
 		info: {
 			title: 'URL Shortener API',
-			version: '2.0.0',
+			version: '2.1.0',
 			description: 'API for shortening URLs with authentication and analytics',
 		},
 		servers: [

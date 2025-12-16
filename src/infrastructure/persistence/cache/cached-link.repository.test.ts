@@ -54,6 +54,7 @@ describe('CachedLinkRepository', () => {
 				links.delete(id.getValue())
 			},
 			countByUserId: async () => links.size,
+			getTotalClicksByUserId: async () => 0,
 			findExpiredLinks: async () => [],
 		} as LinkRepository
 	}
@@ -256,5 +257,19 @@ describe('CachedLinkRepository', () => {
 		const result = await repo.findByUserIdWithClickCount(Id.create(1), 'top', { limit: 10, offset: 0 })
 
 		assert.strictEqual(result.length, 0)
+	})
+
+	test('should get total clicks by user id', async () => {
+		const mockCache = createMockCache()
+		const mockRepo = createMockRepository()
+		const link = createMockLink(1, 'abc123')
+
+		await mockRepo.save(link)
+
+		const repo = new CachedLinkRepository(mockRepo, mockCache)
+
+		const totalClicks = await repo.getTotalClicksByUserId(Id.create(1))
+
+		assert.strictEqual(totalClicks, 0)
 	})
 })

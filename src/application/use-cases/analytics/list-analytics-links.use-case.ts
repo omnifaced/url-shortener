@@ -10,9 +10,10 @@ export class ListAnalyticsLinksUseCase {
 
 		const offset = (page - 1) * limit
 
-		const [linksWithClicks, total] = await Promise.all([
+		const [linksWithClicks, total, totalClicks] = await Promise.all([
 			this.linkRepository.findByUserIdWithClickCount(userIdValue, sort, { limit, offset }),
 			this.linkRepository.countByUserId(userIdValue),
+			this.linkRepository.getTotalClicksByUserId(userIdValue),
 		])
 
 		return {
@@ -25,6 +26,7 @@ export class ListAnalyticsLinksUseCase {
 				clickCount: item.clickCount,
 				createdAt: item.link.getCreatedAt().toISOString(),
 			})),
+			totalClicks,
 			pagination: {
 				page,
 				limit,

@@ -186,4 +186,19 @@ describe('errorHandler', () => {
 
 		assert.strictEqual(loggerMock.mock.calls.length, 1)
 	})
+
+	test('should handle HTTPException without message', async () => {
+		const c = createMockContext()
+		const error = new HTTPException(404)
+
+		const result = (await errorHandler(error, c)) as MockResult
+
+		assert.strictEqual(result.status, 404)
+		assert.deepStrictEqual(result._data, {
+			error: {
+				code: 'NOT_FOUND',
+				message: 'Not Found',
+			},
+		})
+	})
 })

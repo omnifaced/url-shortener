@@ -50,12 +50,14 @@ export const clicksByDateQuerySchema = z.object({
 const topLinksDataSchema = z.object({
 	type: z.literal('top'),
 	links: z.array(analyticsLinkSchema),
+	totalClicks: z.number().openapi({ example: 420 }),
 	pagination: paginationSchema,
 })
 
 const recentLinksDataSchema = z.object({
 	type: z.literal('recent'),
 	links: z.array(analyticsLinkSchema),
+	totalClicks: z.number().openapi({ example: 420 }),
 	pagination: paginationSchema,
 })
 
@@ -105,11 +107,13 @@ export type ListAnalyticsLinksResponseDto =
 	| {
 			type: 'top'
 			links: Array<z.infer<typeof analyticsLinkSchema>>
+			totalClicks: number
 			pagination: PaginationDto
 	  }
 	| {
 			type: 'recent'
 			links: Array<z.infer<typeof analyticsLinkSchema>>
+			totalClicks: number
 			pagination: PaginationDto
 	  }
 

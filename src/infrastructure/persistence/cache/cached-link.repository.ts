@@ -72,6 +72,10 @@ export class CachedLinkRepository implements LinkRepository {
 		return this.linkRepository.countByUserId(userId)
 	}
 
+	public async getTotalClicksByUserId(userId: Id): Promise<number> {
+		return this.linkRepository.getTotalClicksByUserId(userId)
+	}
+
 	public async findExpiredLinks(): Promise<Link[]> {
 		return this.linkRepository.findExpiredLinks()
 	}

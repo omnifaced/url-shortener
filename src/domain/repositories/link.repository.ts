@@ -24,5 +24,6 @@ export interface LinkRepository {
 	update(link: Link): Promise<void>
 	delete(id: Id): Promise<void>
 	countByUserId(userId: Id): Promise<number>
+	getTotalClicksByUserId(userId: Id): Promise<number>
 	findExpiredLinks(): Promise<Link[]>
 }

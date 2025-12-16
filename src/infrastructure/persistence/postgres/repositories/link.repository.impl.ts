@@ -101,6 +101,16 @@ export class LinkRepositoryImpl implements LinkRepository {
 		return result.length
 	}
 
+	public async getTotalClicksByUserId(userId: Id): Promise<number> {
+		const result = await this.db
+			.select({ totalClicks: sql<number>`CAST(COUNT(${schema.clicks.id}) AS INTEGER)` })
+			.from(schema.links)
+			.leftJoin(schema.clicks, eq(schema.links.id, schema.clicks.linkId))
+			.where(eq(schema.links.userId, userId.getValue()))
+
+		return result[0]?.totalClicks ?? 0
+	}
+
 	public async findExpiredLinks(): Promise<Link[]> {
 		const result = await this.db
 			.select()
