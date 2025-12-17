@@ -6,7 +6,8 @@ The following versions of this project are currently being supported with securi
 
 | Version | Supported |
 | ------- | --------- |
-| 1.x.x   | ✅ Yes    |
+| 2.x.x   | ✅ Yes   |
+| 1.x.x   | ❌ No    |
 
 ---
 
