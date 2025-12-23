@@ -23,7 +23,7 @@
 		"@hono/node-server": "^1.19.7",
 		"@hono/swagger-ui": "^0.5.2",
 		"@hono/zod-openapi": "^1.1.5",
-		"@hono/zod-validator": "^0.7.5",
+		"@hono/zod-validator": "^0.7.6",
 		"ajv": "^8.17.1",
 		"consola": "^3.4.2",
 		"cron": "^4.4.0",
