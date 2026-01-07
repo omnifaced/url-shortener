@@ -11,6 +11,10 @@ describe('createApp', () => {
 	const createMockContainer = (certPath?: string, keyPath?: string): Container => {
 		return {
 			config: {
+				app: {
+					host: 'localhost',
+					port: 3000,
+				},
 				certificates: {
 					cert_path: certPath ?? '',
 					key_path: keyPath ?? '',
