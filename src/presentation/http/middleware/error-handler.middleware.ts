@@ -1,5 +1,5 @@
+import { ApplicationError, TooManyRequestsError } from '../../../application'
 import { getTraceId, HTTP_STATUS, logger } from '../../../shared'
-import { ApplicationError } from '../../../application'
 import { HTTPException } from 'hono/http-exception'
 import type { Context } from 'hono'
 import { ZodError } from 'zod'
@@ -11,6 +11,7 @@ function mapErrorCodeToHttpStatus(code: string): number {
 		FORBIDDEN: HTTP_STATUS.FORBIDDEN,
 		NOT_FOUND: HTTP_STATUS.NOT_FOUND,
 		CONFLICT: HTTP_STATUS.CONFLICT,
+		TOO_MANY_REQUESTS: HTTP_STATUS.TOO_MANY_REQUESTS,
 	}
 
 	return statusMap[code] ?? HTTP_STATUS.INTERNAL_SERVER_ERROR
@@ -23,6 +24,7 @@ function mapHttpStatusToErrorCode(status: number): string {
 		[HTTP_STATUS.FORBIDDEN]: 'Forbidden',
 		[HTTP_STATUS.NOT_FOUND]: 'Not Found',
 		[HTTP_STATUS.CONFLICT]: 'Conflict',
+		[HTTP_STATUS.TOO_MANY_REQUESTS]: 'Too Many Requests',
 		[HTTP_STATUS.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
 	}
 
@@ -41,6 +43,27 @@ export async function errorHandler(err: Error, c: Context) {
 				},
 			},
 			err.status as never
+		)
+	}
+
+	if (err instanceof TooManyRequestsError) {
+		if (err.retryAfter) {
+			c.header('Retry-After', String(err.retryAfter))
+		}
+
+		return c.json(
+			{
+				error: {
+					code: err.code,
+					message: err.message,
+					...(err.retryAfter && {
+						details: {
+							retryAfter: err.retryAfter,
+						},
+					}),
+				},
+			},
+			HTTP_STATUS.TOO_MANY_REQUESTS
 		)
 	}
 

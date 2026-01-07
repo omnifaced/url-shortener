@@ -59,14 +59,20 @@ describe('CachedLinkRepository', () => {
 		} as LinkRepository
 	}
 
-	test('should return cached link on cache hit', async () => {
+	const setupRepoWithLink = async (shortCode: string) => {
 		const mockCache = createMockCache()
 		const mockRepo = createMockRepository()
-		const link = createMockLink(1, 'abc123')
+		const link = createMockLink(1, shortCode)
 
 		await mockRepo.save(link)
 
 		const repo = new CachedLinkRepository(mockRepo, mockCache)
+
+		return { mockCache, mockRepo, link, repo }
+	}
+
+	test('should return cached link on cache hit', async () => {
+		const { repo } = await setupRepoWithLink('abc123')
 
 		const result = await repo.findByShortCode(ShortCode.create('abc123'))
 
@@ -75,13 +81,7 @@ describe('CachedLinkRepository', () => {
 	})
 
 	test('should fetch from repository on cache miss', async () => {
-		const mockCache = createMockCache()
-		const mockRepo = createMockRepository()
-		const link = createMockLink(1, 'abc123')
-
-		await mockRepo.save(link)
-
-		const repo = new CachedLinkRepository(mockRepo, mockCache)
+		const { mockCache, repo } = await setupRepoWithLink('abc123')
 
 		const result = await repo.findByShortCode(ShortCode.create('abc123'))
 

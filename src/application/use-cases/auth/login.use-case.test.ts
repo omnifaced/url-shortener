@@ -134,7 +134,7 @@ describe('LoginUseCase', () => {
 		}, UnauthorizedError)
 	})
 
-	test('should work without tokenBlacklistPort', async () => {
+	const createLoginUseCaseWithoutBlacklist = () => {
 		const user = User.create({
 			id: Id.create(1),
 			username: Username.create('test_user'),
@@ -159,13 +159,11 @@ describe('LoginUseCase', () => {
 			generateRefreshToken: mock.fn(() => 'refresh_token_123'),
 		} as unknown as JwtPort
 
-		const useCase = new LoginUseCase(
-			mockUserRepository,
-			mockRefreshTokenRepository,
-			mockPasswordPort,
-			mockJwtPort,
-			3600
-		)
+		return new LoginUseCase(mockUserRepository, mockRefreshTokenRepository, mockPasswordPort, mockJwtPort, 3600)
+	}
+
+	test('should work without tokenBlacklistPort', async () => {
+		const useCase = createLoginUseCaseWithoutBlacklist()
 
 		const result = await useCase.execute({
 			username: 'test_user',
@@ -177,37 +175,7 @@ describe('LoginUseCase', () => {
 	})
 
 	test('should work without userAgent and ip', async () => {
-		const user = User.create({
-			id: Id.create(1),
-			username: Username.create('test_user'),
-			passwordHash: 'hashed_password',
-			createdAt: new Date(),
-		})
-
-		const mockUserRepository: UserRepository = {
-			findByUsername: mock.fn(async () => user),
-		} as unknown as UserRepository
-
-		const mockRefreshTokenRepository: RefreshTokenRepository = {
-			save: mock.fn(async () => ({})),
-		} as unknown as RefreshTokenRepository
-
-		const mockPasswordPort: PasswordPort = {
-			verify: mock.fn(async () => true),
-		} as unknown as PasswordPort
-
-		const mockJwtPort: JwtPort = {
-			generateAccessToken: mock.fn(async () => 'access_token_123'),
-			generateRefreshToken: mock.fn(() => 'refresh_token_123'),
-		} as unknown as JwtPort
-
-		const useCase = new LoginUseCase(
-			mockUserRepository,
-			mockRefreshTokenRepository,
-			mockPasswordPort,
-			mockJwtPort,
-			3600
-		)
+		const useCase = createLoginUseCaseWithoutBlacklist()
 
 		const result = await useCase.execute({
 			username: 'test_user',

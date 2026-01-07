@@ -2,6 +2,7 @@ import * as trace from '../../../shared/utils/trace'
 import * as assert from 'node:assert'
 
 import {
+	TooManyRequestsError,
 	ValidationError,
 	UnauthorizedError,
 	ForbiddenError,
@@ -25,6 +26,7 @@ interface ErrorResponse {
 			message?: string
 			issues?: unknown
 			traceId?: string
+			retryAfter?: number
 		}
 	}
 }
@@ -32,14 +34,24 @@ interface ErrorResponse {
 interface MockResult {
 	_data: ErrorResponse
 	status: number
+	headers: Record<string, string>
+}
+
+function asMockResult(value: unknown): MockResult {
+	return value as MockResult
 }
 
 describe('errorHandler', () => {
 	const createMockContext = () => {
-		const jsonMock = mock.fn((data: ErrorResponse, status: number) => ({ _data: data, status }))
+		const headers: Record<string, string> = {}
+		const jsonMock = mock.fn((data: ErrorResponse, status: number) => ({ _data: data, status, headers }))
+		const headerMock = mock.fn((name: string, value: string) => {
+			headers[name] = value
+		})
 
 		return {
 			json: jsonMock,
+			header: headerMock,
 		} as unknown as Context
 	}
 
@@ -47,7 +59,7 @@ describe('errorHandler', () => {
 		const c = createMockContext()
 		const error = new HTTPException(404, { message: 'Not found' })
 
-		const result = (await errorHandler(error, c)) as MockResult
+		const result = asMockResult(await errorHandler(error, c))
 
 		assert.strictEqual(result.status, 404)
 		assert.deepStrictEqual(result._data, {
@@ -62,7 +74,7 @@ describe('errorHandler', () => {
 		const c = createMockContext()
 		const error = new ValidationError('Invalid input')
 
-		const result = (await errorHandler(error, c)) as MockResult
+		const result = asMockResult(await errorHandler(error, c))
 
 		assert.strictEqual(result.status, 400)
 		assert.deepStrictEqual(result._data, {
@@ -81,7 +93,7 @@ describe('errorHandler', () => {
 			schema.parse({})
 		} catch (err) {
 			if (err instanceof ZodError) {
-				const result = (await errorHandler(err, c)) as MockResult
+				const result = asMockResult(await errorHandler(err, c))
 
 				assert.strictEqual(result.status, 400)
 				assert.strictEqual(result._data.error.code, 'VALIDATION_ERROR')
@@ -96,7 +108,7 @@ describe('errorHandler', () => {
 		const c = createMockContext()
 		const error = new Error('Unknown error')
 
-		const result = (await errorHandler(error, c)) as MockResult
+		const result = asMockResult(await errorHandler(error, c))
 
 		assert.strictEqual(result.status, 500)
 		assert.strictEqual(result._data.error.code, 'INTERNAL_SERVER_ERROR')
@@ -114,7 +126,7 @@ describe('errorHandler', () => {
 		]
 
 		for (const { error, expectedStatus } of testCases) {
-			const result = (await errorHandler(error, c)) as MockResult
+			const result = asMockResult(await errorHandler(error, c))
 
 			assert.strictEqual(result.status, expectedStatus)
 		}
@@ -127,7 +139,7 @@ describe('errorHandler', () => {
 		const error = new Error('Boom')
 
 		const result = await trace.withTrace('abc-123', async () => {
-			return (await errorHandler(error, c)) as MockResult
+			return asMockResult(await errorHandler(error, c))
 		})
 
 		assert.strictEqual(result.status, 500)
@@ -150,7 +162,7 @@ describe('errorHandler', () => {
 		}
 
 		const error = new CustomError()
-		const result = (await errorHandler(error, c)) as MockResult
+		const result = asMockResult(await errorHandler(error, c))
 
 		assert.strictEqual(result.status, 500)
 		assert.strictEqual(result._data.error.code, 'UNKNOWN_CODE')
@@ -161,7 +173,7 @@ describe('errorHandler', () => {
 		const c = createMockContext()
 		const error = new HTTPException(418, { message: 'I am a teapot' })
 
-		const result = (await errorHandler(error, c)) as MockResult
+		const result = asMockResult(await errorHandler(error, c))
 
 		assert.strictEqual(result.status, 418)
 		assert.deepStrictEqual(result._data, {
@@ -177,7 +189,7 @@ describe('errorHandler', () => {
 		const loggerMock = t.mock.method(logger, 'error', () => {})
 
 		const error = new Error('No trace')
-		const result = (await errorHandler(error, c)) as MockResult
+		const result = asMockResult(await errorHandler(error, c))
 
 		assert.strictEqual(result.status, 500)
 		assert.strictEqual(result._data.error.code, 'INTERNAL_SERVER_ERROR')
@@ -191,13 +203,47 @@ describe('errorHandler', () => {
 		const c = createMockContext()
 		const error = new HTTPException(404)
 
-		const result = (await errorHandler(error, c)) as MockResult
+		const result = asMockResult(await errorHandler(error, c))
 
 		assert.strictEqual(result.status, 404)
 		assert.deepStrictEqual(result._data, {
 			error: {
 				code: 'NOT_FOUND',
 				message: 'Not Found',
+			},
+		})
+	})
+
+	test('should handle TooManyRequestsError', async () => {
+		const c = createMockContext()
+		const error = new TooManyRequestsError('Rate limit exceeded')
+
+		const result = asMockResult(await errorHandler(error, c))
+
+		assert.strictEqual(result.status, 429)
+		assert.deepStrictEqual(result._data, {
+			error: {
+				code: 'TOO_MANY_REQUESTS',
+				message: 'Rate limit exceeded',
+			},
+		})
+	})
+
+	test('should handle TooManyRequestsError with retryAfter', async () => {
+		const c = createMockContext()
+		const error = new TooManyRequestsError('Rate limit exceeded', 60)
+
+		const result = asMockResult(await errorHandler(error, c))
+
+		assert.strictEqual(result.status, 429)
+		assert.strictEqual(result.headers['Retry-After'], '60')
+		assert.deepStrictEqual(result._data, {
+			error: {
+				code: 'TOO_MANY_REQUESTS',
+				message: 'Rate limit exceeded',
+				details: {
+					retryAfter: 60,
+				},
 			},
 		})
 	})

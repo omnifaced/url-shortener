@@ -13,6 +13,7 @@ export interface Config {
 	short_code: ShortCode
 	cache: Cache
 	certificates: Certificates
+	rate_limiter: RateLimiter
 }
 export interface App {
 	port: number
@@ -46,4 +47,9 @@ export interface Cache {
 export interface Certificates {
 	cert_path: string
 	key_path: string
+}
+export interface RateLimiter {
+	window_ms: number
+	limit: number
+	redis_prefix: string
 }

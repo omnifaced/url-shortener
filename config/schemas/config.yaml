@@ -9,6 +9,7 @@
       'short_code': { '$ref': 'config/schemas/short_code.yaml' },
       'cache': { '$ref': 'config/schemas/cache.yaml' },
       'certificates': { '$ref': 'config/schemas/certificates.yaml' },
+      'rate_limiter': { '$ref': 'config/schemas/rate_limiter.yaml' },
     },
-  'required': ['app', 'database', 'jwt', 'redis', 'short_code', 'cache', 'certificates'],
+  'required': ['app', 'database', 'jwt', 'redis', 'short_code', 'cache', 'certificates', 'rate_limiter'],
 }

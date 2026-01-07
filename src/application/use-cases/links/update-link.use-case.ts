@@ -1,22 +1,15 @@
 import type { UpdateLinkDto, LinkResponseDto } from '../../dto'
-import { NotFoundError, ForbiddenError } from '../../errors'
-import { Id, type LinkRepository } from '../../../domain'
+import type { LinkOwnershipService } from '../../services'
+import type { LinkRepository } from '../../../domain'
 
 export class UpdateLinkUseCase {
-	constructor(private readonly linkRepository: LinkRepository) {}
+	constructor(
+		private readonly linkOwnershipService: LinkOwnershipService,
+		private readonly linkRepository: LinkRepository
+	) {}
 
 	public async execute(userId: number, linkId: number, data: UpdateLinkDto): Promise<LinkResponseDto> {
-		const linkIdValue = Id.create(linkId)
-		const userIdValue = Id.create(userId)
-
-		const link = await this.linkRepository.findById(linkIdValue)
-		if (!link) {
-			throw new NotFoundError('Link', linkId)
-		}
-
-		if (link.getUserId().getValue() !== userIdValue.getValue()) {
-			throw new ForbiddenError('You do not have permission to update this link')
-		}
+		const link = await this.linkOwnershipService.validateAndGetLink(userId, linkId)
 
 		if (data.title !== undefined) {
 			link.updateTitle(data.title)

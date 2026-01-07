@@ -15,6 +15,7 @@ describe('createApp', () => {
 					cert_path: certPath ?? '',
 					key_path: keyPath ?? '',
 				},
+				rate_limiter: { window_ms: 900000, limit: 100, redis_prefix: 'rate_limit:' },
 			},
 			redis: {},
 		} as Container

@@ -11,6 +11,7 @@ describe('Redirect Controller', () => {
 			config: {
 				app: { port: 3000, host: 'localhost' },
 				certificates: { cert_path: '', key_path: '' },
+				rate_limiter: { window_ms: 900000, limit: 100, redis_prefix: 'rate_limit:' },
 			},
 			redirectUseCase: {
 				execute: mock.fn(async () => 'https://github.com/omnifaced'),

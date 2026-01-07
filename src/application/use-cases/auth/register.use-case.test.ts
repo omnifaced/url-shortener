@@ -108,7 +108,7 @@ describe('RegisterUseCase', () => {
 		}, ConflictError)
 	})
 
-	test('should work without tokenBlacklistPort', async () => {
+	const createRegisterUseCaseWithoutBlacklist = () => {
 		const savedUser = User.create({
 			id: Id.create(1),
 			username: Username.create('new_user'),
@@ -134,13 +134,11 @@ describe('RegisterUseCase', () => {
 			generateRefreshToken: mock.fn(() => 'refresh_token_123'),
 		} as unknown as JwtPort
 
-		const useCase = new RegisterUseCase(
-			mockUserRepository,
-			mockRefreshTokenRepository,
-			mockPasswordPort,
-			mockJwtPort,
-			3600
-		)
+		return new RegisterUseCase(mockUserRepository, mockRefreshTokenRepository, mockPasswordPort, mockJwtPort, 3600)
+	}
+
+	test('should work without tokenBlacklistPort', async () => {
+		const useCase = createRegisterUseCaseWithoutBlacklist()
 
 		const result = await useCase.execute({
 			username: 'new_user',
@@ -152,38 +150,7 @@ describe('RegisterUseCase', () => {
 	})
 
 	test('should work without userAgent and ip', async () => {
-		const savedUser = User.create({
-			id: Id.create(1),
-			username: Username.create('new_user'),
-			passwordHash: 'hashed_password',
-			createdAt: new Date(),
-		})
-
-		const mockUserRepository: UserRepository = {
-			findByUsername: mock.fn(async () => null),
-			save: mock.fn(async () => savedUser),
-		} as unknown as UserRepository
-
-		const mockRefreshTokenRepository: RefreshTokenRepository = {
-			save: mock.fn(async () => ({})),
-		} as unknown as RefreshTokenRepository
-
-		const mockPasswordPort: PasswordPort = {
-			hash: mock.fn(async () => 'hashed_password'),
-		} as unknown as PasswordPort
-
-		const mockJwtPort: JwtPort = {
-			generateAccessToken: mock.fn(async () => 'access_token_123'),
-			generateRefreshToken: mock.fn(() => 'refresh_token_123'),
-		} as unknown as JwtPort
-
-		const useCase = new RegisterUseCase(
-			mockUserRepository,
-			mockRefreshTokenRepository,
-			mockPasswordPort,
-			mockJwtPort,
-			3600
-		)
+		const useCase = createRegisterUseCaseWithoutBlacklist()
 
 		const result = await useCase.execute({
 			username: 'new_user',

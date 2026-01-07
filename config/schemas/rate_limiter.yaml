@@ -1,0 +1,14 @@
+type: object
+properties:
+  window_ms:
+    type: integer
+    minimum: 1000
+  limit:
+    type: integer
+    minimum: 1
+  redis_prefix:
+    type: string
+required:
+  - window_ms
+  - limit
+  - redis_prefix

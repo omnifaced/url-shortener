@@ -21,7 +21,13 @@ export function createApp(container: Container): OpenAPIHono {
 	app.use('*', traceMiddleware)
 	app.use('*', metricsMiddleware)
 	app.use('*', structuredLogger)
-	app.use('*', createRateLimiter(container.redis))
+	app.use(
+		'*',
+		createRateLimiter({
+			rateLimiterConfig: container.config.rate_limiter,
+			redis: container.redis,
+		})
+	)
 
 	app.use('/favicon.ico', serveStatic({ path: './assets/favicon.ico' }))
 
@@ -29,12 +35,12 @@ export function createApp(container: Container): OpenAPIHono {
 		openapi: '3.1.0',
 		info: {
 			title: 'URL Shortener API',
-			version: '2.1.0',
+			version: '2.2.0',
 			description: 'API for shortening URLs with authentication and analytics',
 		},
 		servers: [
 			{
-				url: `${hasCertificates(container.config.certificates.cert_path, container.config.certificates.key_path) ? 'https' : 'http'}://localhost:3000`,
+				url: `${hasCertificates(container.config.certificates.cert_path, container.config.certificates.key_path) ? 'https' : 'http'}://${container.config.app.host}:${container.config.app.port}`,
 				description: 'Local development server',
 			},
 		],

@@ -3,15 +3,16 @@ import {
 	type LinkRepository,
 	type ClickRepository,
 	type RefreshTokenRepository,
-	ShortCodeService,
+	type ShortCodeService,
+	ShortCode,
 } from '../domain'
 
-import {
-	type PasswordPort,
-	type JwtPort,
-	type QrPort,
-	type UserAgentParserPort,
-	type TokenBlacklistPort,
+import type {
+	PasswordPort,
+	JwtPort,
+	QrPort,
+	UserAgentParserPort,
+	TokenBlacklistPort,
 	CreateLinkUseCase,
 	DeleteLinkUseCase,
 	GenerateQrUseCase,
@@ -31,29 +32,18 @@ import {
 } from '../application'
 
 import {
-	createDatabase,
-	type Database,
-	UserRepositoryImpl,
-	LinkRepositoryImpl,
-	ClickRepositoryImpl,
-	RefreshTokenRepositoryImpl,
-	LinkCacheAdapter,
-	CachedLinkRepository,
-	createRedisClient,
-	RedisTokenBlacklistAdapter,
-	PasswordAdapter,
-	JwtAdapter,
-	QrAdapter,
-	UserAgentParserAdapter,
-	CleanupService,
-	MetricsUpdateService,
-	createCleanupJob,
-} from '../infrastructure'
+	createCoreModule,
+	createCleanupModule,
+	createRepositoriesModule,
+	createAuthModule,
+	createLinksModule,
+	createAnalyticsModule,
+} from './modules'
 
+import type { Database } from '../infrastructure'
 import type { RedisClientType } from 'redis'
 import type { Config } from '../shared'
 import { getBaseUrl } from '../shared'
-import { ShortCode } from '../domain'
 import type { CronJob } from 'cron'
 
 export interface Container {
@@ -97,125 +87,75 @@ export interface Container {
 }
 
 export async function createContainer(config: Config): Promise<Container> {
-	const database = createDatabase(config.database.url)
-
 	ShortCode.configure(config.short_code.length, config.short_code.max_length)
 
-	const userRepository = new UserRepositoryImpl(database)
-	const baseLinkRepository = new LinkRepositoryImpl(database)
-	const linkCache = new LinkCacheAdapter(config.cache.max_size, config.cache.ttl)
-	const linkRepository = new CachedLinkRepository(baseLinkRepository, linkCache)
-	const clickRepository = new ClickRepositoryImpl(database)
-	const refreshTokenRepository = new RefreshTokenRepositoryImpl(database)
+	const core = await createCoreModule({
+		config,
+		accessTokenTtl: config.jwt.access_token_ttl,
+	})
 
-	const passwordPort = new PasswordAdapter()
-	const jwtPort = new JwtAdapter(config.jwt.secret, config.jwt.access_token_ttl)
-	const qrPort = new QrAdapter()
-	const userAgentParserPort = new UserAgentParserAdapter()
+	const repositories = createRepositoriesModule({
+		database: core.database,
+		cacheMaxSize: config.cache.max_size,
+		cacheTtl: config.cache.ttl,
+	})
 
-	const shortCodeService = new ShortCodeService(linkRepository, config.short_code.max_attempts)
-
-	let redis: RedisClientType | undefined
-	let tokenBlacklistPort: TokenBlacklistPort | undefined
-	let logoutAllUseCase: LogoutAllUseCase | undefined
-	let cleanupJob: CronJob | undefined
-
-	if (config.redis) {
-		redis = await createRedisClient(config.redis)
-
-		tokenBlacklistPort = new RedisTokenBlacklistAdapter(
-			redis,
-			config.redis.blacklist_prefix,
-			config.redis.user_tokens_prefix,
-			config.jwt.access_token_ttl
-		)
-
-		logoutAllUseCase = new LogoutAllUseCase(refreshTokenRepository, tokenBlacklistPort)
-
-		const cleanupService = new CleanupService(linkRepository, refreshTokenRepository)
-		const metricsUpdateService = new MetricsUpdateService(database)
-
-		cleanupJob = createCleanupJob(cleanupService, metricsUpdateService)
-	}
-
-	const registerUseCase = new RegisterUseCase(
-		userRepository,
-		refreshTokenRepository,
-		passwordPort,
-		jwtPort,
-		config.jwt.refresh_token_ttl,
-		tokenBlacklistPort
-	)
-
-	const loginUseCase = new LoginUseCase(
-		userRepository,
-		refreshTokenRepository,
-		passwordPort,
-		jwtPort,
-		config.jwt.refresh_token_ttl,
-		tokenBlacklistPort
-	)
-
-	const refreshUseCase = new RefreshUseCase(userRepository, refreshTokenRepository, jwtPort, tokenBlacklistPort)
-
-	const logoutUseCase = new LogoutUseCase(refreshTokenRepository, tokenBlacklistPort)
-
-	const createLinkUseCase = new CreateLinkUseCase(linkRepository, shortCodeService)
-
-	const getLinkUseCase = new GetLinkUseCase(linkRepository)
-
-	const listLinksUseCase = new ListLinksUseCase(linkRepository)
-
-	const updateLinkUseCase = new UpdateLinkUseCase(linkRepository)
-
-	const deleteLinkUseCase = new DeleteLinkUseCase(linkRepository)
+	const auth = createAuthModule({
+		userRepository: repositories.userRepository,
+		refreshTokenRepository: repositories.refreshTokenRepository,
+		tokenBlacklistPort: core.tokenBlacklistPort,
+		jwtSecret: config.jwt.secret,
+		accessTokenTtl: config.jwt.access_token_ttl,
+		refreshTokenTtl: config.jwt.refresh_token_ttl,
+	})
 
 	const baseUrl =
 		config.app.redirect_url ||
 		getBaseUrl(config.app.host, config.app.port, config.certificates.cert_path, config.certificates.key_path)
 
-	const generateQrUseCase = new GenerateQrUseCase(linkRepository, qrPort, baseUrl)
+	const links = createLinksModule({
+		linkRepository: repositories.linkRepository,
+		clickRepository: repositories.clickRepository,
+		baseUrl,
+		shortCodeMaxAttempts: config.short_code.max_attempts,
+	})
 
-	const getClicksByDateUseCase = new GetClicksByDateUseCase(linkRepository, clickRepository)
+	const analytics = createAnalyticsModule({
+		linkRepository: repositories.linkRepository,
+		clickRepository: repositories.clickRepository,
+		linkOwnershipService: links.linkOwnershipService,
+	})
 
-	const getLinkClicksUseCase = new GetLinkClicksUseCase(linkRepository, clickRepository)
+	let cleanupJob: CronJob | undefined
 
-	const getLinkStatsUseCase = new GetLinkStatsUseCase(linkRepository, clickRepository)
-
-	const listAnalyticsLinksUseCase = new ListAnalyticsLinksUseCase(linkRepository)
-
-	const redirectUseCase = new RedirectUseCase(linkRepository, clickRepository, userAgentParserPort)
+	if (core.redis) {
+		cleanupJob = createCleanupModule({
+			database: core.database,
+			linkRepository: repositories.linkRepository,
+			refreshTokenRepository: repositories.refreshTokenRepository,
+		})
+	}
 
 	return {
-		config,
-		database,
-		redis,
+		config: core.config,
+		database: core.database,
+		redis: core.redis,
 		cleanupJob,
-		userRepository,
-		linkRepository,
-		clickRepository,
-		refreshTokenRepository,
-		passwordPort,
-		jwtPort,
-		qrPort,
-		userAgentParserPort,
-		tokenBlacklistPort,
-		shortCodeService,
-		registerUseCase,
-		loginUseCase,
-		refreshUseCase,
-		logoutUseCase,
-		logoutAllUseCase,
-		createLinkUseCase,
-		getLinkUseCase,
-		listLinksUseCase,
-		updateLinkUseCase,
-		deleteLinkUseCase,
-		generateQrUseCase,
-		getClicksByDateUseCase,
-		getLinkClicksUseCase,
-		getLinkStatsUseCase,
-		listAnalyticsLinksUseCase,
-		redirectUseCase,
+		tokenBlacklistPort: core.tokenBlacklistPort,
+
+		...repositories,
+		...auth,
+		...analytics,
+
+		qrPort: links.qrPort,
+		userAgentParserPort: links.userAgentParserPort,
+		shortCodeService: links.shortCodeService,
+		createLinkUseCase: links.createLinkUseCase,
+		getLinkUseCase: links.getLinkUseCase,
+		listLinksUseCase: links.listLinksUseCase,
+		updateLinkUseCase: links.updateLinkUseCase,
+		deleteLinkUseCase: links.deleteLinkUseCase,
+		generateQrUseCase: links.generateQrUseCase,
+		redirectUseCase: links.redirectUseCase,
 	}
 }

@@ -1,13 +1,14 @@
 import * as assert from 'node:assert'
 
-import { Click, Id, Link, ShortCode, Url, type ClickRepository, type LinkRepository } from '../../../domain'
+import { Click, Id, Link, ShortCode, Url, type ClickRepository } from '../../../domain'
 import { GetLinkClicksUseCase } from './get-link-clicks.use-case'
 import { ForbiddenError, NotFoundError } from '../../errors'
+import type { LinkOwnershipService } from '../../services'
 import { describe, mock, test } from 'node:test'
 
 describe('GetLinkClicksUseCase', () => {
-	test('should return recent clicks with pagination', async () => {
-		const link = Link.create({
+	const createMockLink = () => {
+		return Link.create({
 			id: Id.create(1),
 			userId: Id.create(10),
 			originalUrl: Url.create('https://github.com/omnifaced'),
@@ -17,6 +18,22 @@ describe('GetLinkClicksUseCase', () => {
 			createdAt: new Date('2025-01-01'),
 			expiresAt: null,
 		})
+	}
+
+	const createMockOwnershipService = (link: Link | null, shouldThrow?: Error) => {
+		return {
+			validateAndGetLink: mock.fn(async () => {
+				if (shouldThrow) {
+					throw shouldThrow
+				}
+
+				return link
+			}),
+		} as unknown as LinkOwnershipService
+	}
+
+	test('should return recent clicks with pagination', async () => {
+		const link = createMockLink()
 
 		const clicks = [
 			Click.create({
@@ -39,21 +56,21 @@ describe('GetLinkClicksUseCase', () => {
 			}),
 		]
 
-		const findByIdMock = mock.fn(async () => link)
+		const validateAndGetLinkMock = mock.fn(async () => link)
 		const findByLinkIdPaginatedMock = mock.fn(async () => ({
 			items: clicks,
 			total: 2,
 		}))
 
-		const mockLinkRepository: LinkRepository = {
-			findById: findByIdMock,
-		} as unknown as LinkRepository
+		const mockOwnershipService: LinkOwnershipService = {
+			validateAndGetLink: validateAndGetLinkMock,
+		} as unknown as LinkOwnershipService
 
 		const mockClickRepository: ClickRepository = {
 			findByLinkIdPaginated: findByLinkIdPaginatedMock,
 		} as unknown as ClickRepository
 
-		const useCase = new GetLinkClicksUseCase(mockLinkRepository, mockClickRepository)
+		const useCase = new GetLinkClicksUseCase(mockOwnershipService, mockClickRepository)
 
 		const result = await useCase.execute(10, 1, { type: 'recent', page: 1, limit: 10 })
 
@@ -70,42 +87,33 @@ describe('GetLinkClicksUseCase', () => {
 		assert.strictEqual(result.pagination.limit, 10)
 		assert.strictEqual(result.pagination.total, 2)
 		assert.strictEqual(result.pagination.totalPages, 1)
-		assert.strictEqual(findByIdMock.mock.calls.length, 1)
+		assert.strictEqual(validateAndGetLinkMock.mock.calls.length, 1)
 		assert.strictEqual(findByLinkIdPaginatedMock.mock.calls.length, 1)
 	})
 
 	test('should return top referers with pagination', async () => {
-		const link = Link.create({
-			id: Id.create(1),
-			userId: Id.create(10),
-			originalUrl: Url.create('https://github.com/omnifaced'),
-			shortCode: ShortCode.create('abc123'),
-			title: 'Test Link',
-			isActive: true,
-			createdAt: new Date('2025-01-01'),
-			expiresAt: null,
-		})
+		const link = createMockLink()
 
 		const topReferers = [
 			{ referer: 'https://github.com/omnifaced', count: 10 },
 			{ referer: 'https://github.com/omnifaced', count: 5 },
 		]
 
-		const findByIdMock = mock.fn(async () => link)
+		const validateAndGetLinkMock = mock.fn(async () => link)
 		const getTopReferersPaginatedMock = mock.fn(async () => ({
 			items: topReferers,
 			total: 2,
 		}))
 
-		const mockLinkRepository: LinkRepository = {
-			findById: findByIdMock,
-		} as unknown as LinkRepository
+		const mockOwnershipService: LinkOwnershipService = {
+			validateAndGetLink: validateAndGetLinkMock,
+		} as unknown as LinkOwnershipService
 
 		const mockClickRepository: ClickRepository = {
 			getTopReferersPaginated: getTopReferersPaginatedMock,
 		} as unknown as ClickRepository
 
-		const useCase = new GetLinkClicksUseCase(mockLinkRepository, mockClickRepository)
+		const useCase = new GetLinkClicksUseCase(mockOwnershipService, mockClickRepository)
 
 		const result = await useCase.execute(10, 1, { type: 'referers', page: 1, limit: 10 })
 
@@ -121,18 +129,15 @@ describe('GetLinkClicksUseCase', () => {
 		assert.strictEqual(result.pagination.page, 1)
 		assert.strictEqual(result.pagination.limit, 10)
 		assert.strictEqual(result.pagination.total, 2)
-		assert.strictEqual(findByIdMock.mock.calls.length, 1)
+		assert.strictEqual(validateAndGetLinkMock.mock.calls.length, 1)
 		assert.strictEqual(getTopReferersPaginatedMock.mock.calls.length, 1)
 	})
 
 	test('should throw NotFoundError when link does not exist', async () => {
-		const mockLinkRepository: LinkRepository = {
-			findById: mock.fn(async () => null),
-		} as unknown as LinkRepository
-
+		const mockOwnershipService = createMockOwnershipService(null, new NotFoundError('Link', 999))
 		const mockClickRepository: ClickRepository = {} as unknown as ClickRepository
 
-		const useCase = new GetLinkClicksUseCase(mockLinkRepository, mockClickRepository)
+		const useCase = new GetLinkClicksUseCase(mockOwnershipService, mockClickRepository)
 
 		await assert.rejects(async () => {
 			await useCase.execute(10, 999, { type: 'recent', page: 1, limit: 10 })
@@ -140,24 +145,14 @@ describe('GetLinkClicksUseCase', () => {
 	})
 
 	test('should throw ForbiddenError when user does not own the link', async () => {
-		const link = Link.create({
-			id: Id.create(1),
-			userId: Id.create(99),
-			originalUrl: Url.create('https://github.com/omnifaced'),
-			shortCode: ShortCode.create('abc123'),
-			title: 'Test Link',
-			isActive: true,
-			createdAt: new Date('2025-01-01'),
-			expiresAt: null,
-		})
-
-		const mockLinkRepository: LinkRepository = {
-			findById: mock.fn(async () => link),
-		} as unknown as LinkRepository
+		const mockOwnershipService = createMockOwnershipService(
+			null,
+			new ForbiddenError('You do not have permission to access this link')
+		)
 
 		const mockClickRepository: ClickRepository = {} as unknown as ClickRepository
 
-		const useCase = new GetLinkClicksUseCase(mockLinkRepository, mockClickRepository)
+		const useCase = new GetLinkClicksUseCase(mockOwnershipService, mockClickRepository)
 
 		await assert.rejects(async () => {
 			await useCase.execute(10, 1, { type: 'recent', page: 1, limit: 10 })
@@ -165,32 +160,14 @@ describe('GetLinkClicksUseCase', () => {
 	})
 
 	test('should handle empty results', async () => {
-		const link = Link.create({
-			id: Id.create(1),
-			userId: Id.create(10),
-			originalUrl: Url.create('https://github.com/omnifaced'),
-			shortCode: ShortCode.create('abc123'),
-			title: 'Test Link',
-			isActive: true,
-			createdAt: new Date('2025-01-01'),
-			expiresAt: null,
-		})
-
-		const findByIdMock = mock.fn(async () => link)
-		const findByLinkIdPaginatedMock = mock.fn(async () => ({
-			items: [],
-			total: 0,
-		}))
-
-		const mockLinkRepository: LinkRepository = {
-			findById: findByIdMock,
-		} as unknown as LinkRepository
+		const link = createMockLink()
+		const mockOwnershipService = createMockOwnershipService(link)
 
 		const mockClickRepository: ClickRepository = {
-			findByLinkIdPaginated: findByLinkIdPaginatedMock,
+			findByLinkIdPaginated: mock.fn(async () => ({ items: [], total: 0 })),
 		} as unknown as ClickRepository
 
-		const useCase = new GetLinkClicksUseCase(mockLinkRepository, mockClickRepository)
+		const useCase = new GetLinkClicksUseCase(mockOwnershipService, mockClickRepository)
 
 		const result = await useCase.execute(10, 1, { type: 'recent', page: 1, limit: 10 })
 
@@ -201,32 +178,19 @@ describe('GetLinkClicksUseCase', () => {
 	})
 
 	test('should handle pagination with offset', async () => {
-		const link = Link.create({
-			id: Id.create(1),
-			userId: Id.create(10),
-			originalUrl: Url.create('https://github.com/omnifaced'),
-			shortCode: ShortCode.create('abc123'),
-			title: 'Test Link',
-			isActive: true,
-			createdAt: new Date('2025-01-01'),
-			expiresAt: null,
-		})
+		const link = createMockLink()
+		const mockOwnershipService = createMockOwnershipService(link)
 
-		const findByIdMock = mock.fn(async () => link)
 		const findByLinkIdPaginatedMock = mock.fn(async () => ({
 			items: [],
 			total: 100,
 		}))
 
-		const mockLinkRepository: LinkRepository = {
-			findById: findByIdMock,
-		} as unknown as LinkRepository
-
 		const mockClickRepository: ClickRepository = {
 			findByLinkIdPaginated: findByLinkIdPaginatedMock,
 		} as unknown as ClickRepository
 
-		const useCase = new GetLinkClicksUseCase(mockLinkRepository, mockClickRepository)
+		const useCase = new GetLinkClicksUseCase(mockOwnershipService, mockClickRepository)
 
 		const result = await useCase.execute(10, 1, { type: 'recent', page: 3, limit: 10 })
 

@@ -18,6 +18,25 @@ describe('PureConfig', () => {
 		rmSync(baseTestDir, { recursive: true, force: true })
 	})
 
+	const assertExitsWithError = (configDir: string, schemaDir: string) => {
+		const exitMock = mock.method(process, 'exit', () => {
+			throw new Error('process.exit called')
+		})
+
+		const config = new PureConfig({
+			configsDirPath: configDir,
+			configsSchemaDirPath: schemaDir,
+		})
+
+		try {
+			assert.throws(() => config.load(), /process\.exit called/)
+		} finally {
+			exitMock.mock.restore()
+		}
+
+		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
+	}
+
 	test('should load and validate config successfully', () => {
 		const config = new PureConfig({
 			configsDirPath: testConfigDir,
@@ -138,22 +157,7 @@ properties:
 `
 		)
 
-		const exitMock = mock.method(process, 'exit', () => {
-			throw new Error('process.exit called')
-		})
-
-		const config = new PureConfig({
-			configsDirPath: tempConfigDir,
-			configsSchemaDirPath: tempSchemaDir,
-		})
-
-		try {
-			assert.throws(() => config.load(), /process\.exit called/)
-		} finally {
-			exitMock.mock.restore()
-		}
-
-		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
+		assertExitsWithError(tempConfigDir, tempSchemaDir)
 	})
 
 	test('should skip directories in config folder', () => {
@@ -373,22 +377,7 @@ required:
 `
 		)
 
-		const exitMock = mock.method(process, 'exit', () => {
-			throw new Error('process.exit called')
-		})
-
-		const config = new PureConfig({
-			configsDirPath: tempConfigDir,
-			configsSchemaDirPath: tempSchemaDir,
-		})
-
-		try {
-			assert.throws(() => config.load(), /process\.exit called/)
-		} finally {
-			exitMock.mock.restore()
-		}
-
-		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
+		assertExitsWithError(tempConfigDir, tempSchemaDir)
 	})
 
 	test('should exit when expression has error in required field', () => {
@@ -417,22 +406,7 @@ required:
 `
 		)
 
-		const exitMock = mock.method(process, 'exit', () => {
-			throw new Error('process.exit called')
-		})
-
-		const config = new PureConfig({
-			configsDirPath: tempConfigDir,
-			configsSchemaDirPath: tempSchemaDir,
-		})
-
-		try {
-			assert.throws(() => config.load(), /process\.exit called/)
-		} finally {
-			exitMock.mock.restore()
-		}
-
-		assert.strictEqual(exitMock.mock.calls[0].arguments[0], 1)
+		assertExitsWithError(tempConfigDir, tempSchemaDir)
 	})
 
 	test('should return undefined for optional field with undefined variable', () => {

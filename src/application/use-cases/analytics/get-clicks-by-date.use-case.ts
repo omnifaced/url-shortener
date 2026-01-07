@@ -1,10 +1,10 @@
-import { Id, type LinkRepository, type ClickRepository } from '../../../domain'
 import type { ClicksByDateQueryDto, ClicksByDateResponseDto } from '../../dto'
-import { NotFoundError, ForbiddenError } from '../../errors'
+import type { LinkOwnershipService } from '../../services'
+import type { ClickRepository } from '../../../domain'
 
 export class GetClicksByDateUseCase {
 	constructor(
-		private readonly linkRepository: LinkRepository,
+		private readonly linkOwnershipService: LinkOwnershipService,
 		private readonly clickRepository: ClickRepository
 	) {}
 
@@ -13,18 +13,7 @@ export class GetClicksByDateUseCase {
 		linkId: number,
 		query: ClicksByDateQueryDto
 	): Promise<ClicksByDateResponseDto> {
-		const linkIdValue = Id.create(linkId)
-		const userIdValue = Id.create(userId)
-
-		const link = await this.linkRepository.findById(linkIdValue)
-
-		if (!link) {
-			throw new NotFoundError('Link', linkId)
-		}
-
-		if (link.getUserId().getValue() !== userIdValue.getValue()) {
-			throw new ForbiddenError('You do not have permission to access this link')
-		}
+		const link = await this.linkOwnershipService.validateAndGetLink(userId, linkId)
 
 		const { days, page, limit } = query
 		const offset = (page - 1) * limit
