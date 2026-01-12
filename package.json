@@ -20,7 +20,7 @@
 		"test:watch": "node --import tsx --test --watch \"src/**/*.test.ts\""
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.19.7",
+		"@hono/node-server": "^1.19.8",
 		"@hono/swagger-ui": "^0.5.3",
 		"@hono/zod-openapi": "^1.2.0",
 		"@hono/zod-validator": "^0.7.6",
