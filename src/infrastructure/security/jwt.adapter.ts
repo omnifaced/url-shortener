@@ -33,7 +33,9 @@ export class JwtAdapter implements JwtPort {
 
 	public async verifyAccessToken(token: string): Promise<JwtPayload | null> {
 		try {
-			const payload = (await verify(token, this.jwtSecret)) as unknown as JwtTokenPayload
+			const payload = (await verify(token, this.jwtSecret, {
+				alg: 'HS256',
+			})) as unknown as JwtTokenPayload
 
 			if (!payload || !payload.exp) {
 				return null
