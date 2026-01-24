@@ -28,7 +28,7 @@
 		"consola": "^3.4.2",
 		"cron": "^4.4.0",
 		"drizzle-orm": "^0.45.1",
-		"hono": "^4.11.4",
+		"hono": "^4.11.5",
 		"hono-rate-limiter": "^0.5.3",
 		"lru-cache": "^11.2.4",
 		"postgres": "^3.4.8",
@@ -37,11 +37,11 @@
 		"redis": "^5.10.0",
 		"ua-parser-js": "^2.0.8",
 		"yaml": "^2.8.2",
-		"zod": "^4.3.5"
+		"zod": "^4.3.6"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.3.11",
-		"@types/node": "^25.0.9",
+		"@biomejs/biome": "^2.3.12",
+		"@types/node": "^25.0.10",
 		"drizzle-kit": "^0.31.8",
 		"json-schema-to-typescript": "^15.0.4",
 		"tsx": "^4.21.0",
