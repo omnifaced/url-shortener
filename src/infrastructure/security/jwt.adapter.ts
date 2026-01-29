@@ -1,9 +1,9 @@
 /* node:coverage disable */
 
 import type { JwtPort, JwtPayload } from '../../application'
+import { sign, verify, AlgorithmTypes } from 'hono/jwt'
 import { Id, Username } from '../../domain'
 import { randomBytes } from 'node:crypto'
-import { sign, verify } from 'hono/jwt'
 
 interface JwtTokenPayload {
 	userId: number
@@ -34,7 +34,7 @@ export class JwtAdapter implements JwtPort {
 	public async verifyAccessToken(token: string): Promise<JwtPayload | null> {
 		try {
 			const payload = (await verify(token, this.jwtSecret, {
-				alg: 'HS256',
+				alg: AlgorithmTypes.HS256,
 			})) as unknown as JwtTokenPayload
 
 			if (!payload || !payload.exp) {
