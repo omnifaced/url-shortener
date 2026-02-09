@@ -28,7 +28,7 @@
 		"consola": "^3.4.2",
 		"cron": "^4.4.0",
 		"drizzle-orm": "^0.45.1",
-		"hono": "^4.11.7",
+		"hono": "^4.11.9",
 		"hono-rate-limiter": "^0.5.3",
 		"lru-cache": "^11.2.5",
 		"postgres": "^3.4.8",
