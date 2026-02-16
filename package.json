@@ -24,7 +24,7 @@
 		"@hono/swagger-ui": "^0.5.3",
 		"@hono/zod-openapi": "^1.2.0",
 		"@hono/zod-validator": "^0.7.6",
-		"ajv": "^8.17.1",
+		"ajv": "^8.18.0",
 		"consola": "^3.4.2",
 		"cron": "^4.4.0",
 		"drizzle-orm": "^0.45.1",
