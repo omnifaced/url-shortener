@@ -70,8 +70,8 @@ importers:
         specifier: ^2.4.6
         version: 2.4.6
       '@types/node':
-        specifier: ^25.3.3
-        version: 25.3.3
+        specifier: ^25.4.0
+        version: 25.4.0
       drizzle-kit:
         specifier: ^0.31.9
         version: 0.31.9
@@ -389,8 +389,8 @@ packages:
   '@types/luxon@3.7.1':
     resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
 
-  '@types/node@25.3.3':
-    resolution: {integrity: sha512-DpzbrH7wIcBaJibpKo9nnSQL0MTRdnWttGyE5haGwK86xgMOkFLp7vEyfQPGLOJh5wNYiJ3V9PmUMDhV9u8kkQ==}
+  '@types/node@25.4.0':
+    resolution: {integrity: sha512-9wLpoeWuBlcbBpOY3XmzSTG3oscB6xjBEEtn+pYXTfhyXhIxC5FsBer2KTopBlvKEiW9l13po9fq+SJY/5lkhw==}
 
   ajv@8.18.0:
     resolution: {integrity: sha512-PlXPeEWMXMZ7sPYOHqmDyCJzcfNrUr3fGNKtezX14ykXOEIvyK81d+qydx89KY5O71FKMPaQ2vBfBFI5NHR63A==}
@@ -876,7 +876,7 @@ snapshots:
 
   '@types/luxon@3.7.1': {}
 
-  '@types/node@25.3.3':
+  '@types/node@25.4.0':
     dependencies:
       undici-types: 7.18.2
 
