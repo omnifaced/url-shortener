@@ -28,7 +28,7 @@
 		"consola": "^3.4.2",
 		"cron": "^4.4.0",
 		"drizzle-orm": "^0.45.1",
-		"hono": "^4.12.8",
+		"hono": "^4.12.9",
 		"hono-rate-limiter": "^0.5.3",
 		"lru-cache": "^11.2.7",
 		"postgres": "^3.4.8",
@@ -45,7 +45,7 @@
 		"drizzle-kit": "^0.31.10",
 		"json-schema-to-typescript": "^15.0.4",
 		"tsx": "^4.21.0",
-		"typescript": "^5.9.3"
+		"typescript": "^6.0.2"
 	},
 	"overrides": {
 		"esbuild": "0.27.3"
