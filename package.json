@@ -20,39 +20,31 @@
 		"test:watch": "node --import tsx --test --watch \"src/**/*.test.ts\""
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.19.11",
+		"@hono/node-server": "^2.0.2",
 		"@hono/swagger-ui": "^0.6.1",
-		"@hono/zod-openapi": "^1.2.3",
-		"@hono/zod-validator": "^0.7.6",
-		"ajv": "^8.18.0",
+		"@hono/zod-openapi": "^1.4.0",
+		"@hono/zod-validator": "^0.8.0",
+		"ajv": "^8.20.0",
 		"consola": "^3.4.2",
 		"cron": "^4.4.0",
-		"drizzle-orm": "^0.45.1",
-		"hono": "^4.12.9",
+		"drizzle-orm": "^0.45.2",
+		"hono": "^4.12.18",
 		"hono-rate-limiter": "^0.5.3",
-		"lru-cache": "^11.2.7",
-		"postgres": "^3.4.8",
+		"lru-cache": "^11.3.6",
+		"postgres": "^3.4.9",
 		"prom-client": "^15.1.3",
-		"qr": "^0.5.5",
-		"redis": "^5.11.0",
+		"qr": "^0.6.0",
+		"redis": "^5.12.1",
 		"ua-parser-js": "^2.0.9",
-		"yaml": "^2.8.3",
-		"zod": "^4.3.6"
+		"yaml": "^2.9.0",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.9",
-		"@types/node": "^25.5.0",
+		"@biomejs/biome": "^2.4.15",
+		"@types/node": "^25.7.0",
 		"drizzle-kit": "^0.31.10",
 		"json-schema-to-typescript": "^15.0.4",
 		"tsx": "^4.21.0",
-		"typescript": "^6.0.2"
-	},
-	"overrides": {
-		"esbuild": "0.27.3"
-	},
-	"pnpm": {
-		"overrides": {
-			"esbuild": "0.27.3"
-		}
+		"typescript": "^6.0.3"
 	}
 }
